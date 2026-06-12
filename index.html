@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Analytics — Digital Ad Market Research</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue-50:  #E6F1FB;
+    --blue-100: #B5D4F4;
+    --blue-400: #378ADD;
+    --blue-600: #185FA5;
+    --blue-800: #0C447C;
+    --gray-50:  #F7F8FA;
+    --gray-100: #ECEEF2;
+    --gray-200: #D4D8E0;
+    --gray-400: #8892A0;
+    --gray-700: #3C4554;
+    --gray-900: #1A202C;
+    --red-bg:   #FEF2F2;
+    --red-text: #B91C1C;
+    --radius: 10px;
+  }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #F0F4FA;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem 4rem;
+    color: var(--gray-900);
+  }
+  .card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 2px 24px rgba(55,138,221,0.10), 0 1px 4px rgba(0,0,0,0.06);
+    width: 100%;
+    max-width: 560px;
+    padding: 2.5rem 2.5rem 2rem;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 2rem;
+  }
+  .brand-logo {
+    width: 32px; height: 32px; background: var(--blue-400);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  }
+  .brand-logo svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; }
+  .brand-name { font-size: 15px; font-weight: 600; color: var(--gray-900); }
+  .brand-tag { font-size: 12px; color: var(--gray-400); margin-left: auto; }
+  .progress-track {
+    height: 4px; background: var(--gray-100); border-radius: 2px;
+    margin-bottom: 2rem; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue-400), var(--blue-600));
+    border-radius: 2px; transition: width 0.4s cubic-bezier(.4,0,.2,1);
+  }
+  .step { display: none; }
+  .step.active { display: block; animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .step-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--blue-400); margin-bottom: 8px;
+  }
+  .step-title {
+    font-size: 22px; font-weight: 600; color: var(--gray-900);
+    line-height: 1.3; margin-bottom: 6px;
+  }
+  .step-sub {
+    font-size: 14px; color: var(--gray-400); line-height: 1.6; margin-bottom: 1.5rem;
+  }
+  .multi-hint {
+    font-size: 12px; color: var(--blue-400); font-weight: 500;
+    margin-bottom: 10px; display: flex; align-items: center; gap: 5px;
+  }
+  .multi-hint::before {
+    content: ''; display: inline-block; width: 14px; height: 14px;
+    border: 1.5px solid var(--blue-400); border-radius: 3px; flex-shrink: 0;
+  }
+  .opts {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-bottom: 1.5rem;
+  }
+  .opt {
+    border: 1.5px solid var(--gray-200); border-radius: var(--radius);
+    padding: 13px 14px; cursor: pointer; font-size: 14px; font-weight: 500;
+    color: var(--gray-700); background: #fff;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    display: flex; align-items: center; gap: 9px; user-select: none;
+  }
+  .opt:hover { border-color: var(--blue-400); background: var(--blue-50); color: var(--blue-800); }
+  .opt.selected { border-color: var(--blue-400); background: var(--blue-50); color: var(--blue-800); }
+  .opt-icon {
+    width: 32px; height: 32px; border-radius: 8px; background: var(--blue-50);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    transition: transform 0.15s;
+  }
+  .opt:hover .opt-icon, .opt.selected .opt-icon { transform: scale(1.08); }
+  .opt-icon svg { width: 16px; height: 16px; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Platform */
+  .opt-icon.instagram { background: linear-gradient(135deg, #f9ce34, #ee2a7b, #6228d7); }
+  .opt-icon.instagram svg { stroke: #fff; }
+  .opt-icon.tiktok { background: #010101; }
+  .opt-icon.tiktok svg { stroke: #fff; }
+
+  /* Formats */
+  .opt-icon.post { background: #E8F5E9; }
+  .opt-icon.post svg { stroke: #2E7D32; }
+  .opt-icon.integration { background: #FFF3E0; }
+  .opt-icon.integration svg { stroke: #E65100; }
+  .opt-icon.stories { background: linear-gradient(135deg, #f9ce34, #ee2a7b); }
+  .opt-icon.stories svg { stroke: #fff; }
+  .opt-icon.reel { background: #EDE7F6; }
+  .opt-icon.reel svg { stroke: #512DA8; }
+  .opt-icon.longvideo { background: #FFEBEE; }
+  .opt-icon.longvideo svg { stroke: #C62828; }
+
+  /* Audience size */
+  .opt-icon.size-s { background: #E3F2FD; }
+  .opt-icon.size-s svg { stroke: #1565C0; }
+  .opt-icon.size-m { background: #E8EAF6; }
+  .opt-icon.size-m svg { stroke: #283593; }
+  .opt-icon.size-l { background: #F3E5F5; }
+  .opt-icon.size-l svg { stroke: #6A1B9A; }
+  .opt-icon.size-xl { background: linear-gradient(135deg, #FFD700, #FFA000); }
+  .opt-icon.size-xl svg { stroke: #fff; }
+
+  /* Account types */
+  .opt-icon.blogger { background: #E3F2FD; }
+  .opt-icon.blogger svg { stroke: #1565C0; }
+  .opt-icon.musician { background: #FCE4EC; }
+  .opt-icon.musician svg { stroke: #880E4F; }
+  .opt-icon.athlete { background: #E8F5E9; }
+  .opt-icon.athlete svg { stroke: #1B5E20; }
+  .opt-icon.podcaster { background: #FFF3E0; }
+  .opt-icon.podcaster svg { stroke: #E65100; }
+  .opt-icon.comedian { background: #FFFDE7; }
+  .opt-icon.comedian svg { stroke: #F57F17; }
+  .opt-icon.expert { background: #E8EAF6; }
+  .opt-icon.expert svg { stroke: #283593; }
+  .opt-icon.model { background: #FCE4EC; }
+  .opt-icon.model svg { stroke: #AD1457; }
+  .opt-icon.gamer { background: #EDE7F6; }
+  .opt-icon.gamer svg { stroke: #4527A0; }
+
+  /* Volume/repeat */
+  .opt-icon.vol { background: var(--blue-50); }
+  .opt-icon.vol svg { stroke: var(--blue-600); }
+  .opt-label { flex: 1; }
+  .check-ring {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 1.5px solid var(--gray-200); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .opt.selected .check-ring { background: var(--blue-400); border-color: var(--blue-400); }
+  .opt.selected .check-ring::after {
+    content: ''; display: block; width: 6px; height: 4px;
+    border-left: 2px solid #fff; border-bottom: 2px solid #fff;
+    transform: rotate(-45deg) translateY(-1px);
+  }
+  .price-opts {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-bottom: 1.5rem;
+  }
+  .price-opt {
+    border: 1.5px solid var(--gray-200); border-radius: var(--radius);
+    padding: 14px 16px; cursor: pointer; background: #fff;
+    transition: border-color 0.15s, background 0.15s; text-align: left; user-select: none;
+  }
+  .price-opt:hover { border-color: var(--blue-400); background: var(--blue-50); }
+  .price-opt.selected { border-color: var(--blue-400); background: var(--blue-50); }
+  .price-val { font-size: 15px; font-weight: 600; color: var(--gray-900); }
+  .price-opt.selected .price-val { color: var(--blue-800); }
+  .price-desc { font-size: 12px; color: var(--gray-400); margin-top: 3px; }
+  .price-opt.selected .price-desc { color: var(--blue-600); }
+  .sub-q { font-size: 14px; font-weight: 600; color: var(--gray-700); margin-bottom: 10px; margin-top: 4px; }
+  .nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 1rem; border-top: 1px solid var(--gray-100); margin-top: 0.5rem;
+  }
+  .nav-counter { font-size: 13px; color: var(--gray-400); font-weight: 500; }
+  .btn-back {
+    background: none; border: 1.5px solid var(--gray-200); border-radius: var(--radius);
+    padding: 10px 18px; font-size: 14px; font-weight: 500; color: var(--gray-400);
+    cursor: pointer; display: flex; align-items: center; gap: 6px;
+    transition: color 0.15s, border-color 0.15s; font-family: inherit;
+  }
+  .btn-back:hover { color: var(--gray-700); border-color: var(--gray-400); }
+  .btn-next {
+    background: var(--blue-400); border: none; border-radius: var(--radius);
+    padding: 11px 24px; font-size: 14px; font-weight: 600; color: #fff;
+    cursor: pointer; display: flex; align-items: center; gap: 7px;
+    transition: background 0.15s; font-family: inherit;
+  }
+  .btn-next:hover:not(:disabled) { background: var(--blue-600); }
+  .btn-next:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-next svg, .btn-back svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff;
+    border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-msg {
+    font-size: 13px; color: var(--red-text); background: var(--red-bg);
+    border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; display: none;
+  }
+  .done-wrap { text-align: center; padding: 1.5rem 0 0.5rem; }
+  .done-icon {
+    width: 64px; height: 64px; background: var(--blue-50); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;
+  }
+  .done-icon svg { width: 32px; height: 32px; stroke: var(--blue-400); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .done-pill {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 20px;
+    background: var(--blue-50); color: var(--blue-600); margin-bottom: 1rem;
+  }
+  .done-title { font-size: 24px; font-weight: 600; color: var(--gray-900); margin-bottom: 10px; }
+  .done-sub { font-size: 15px; color: var(--gray-400); line-height: 1.7; max-width: 380px; margin: 0 auto; }
+  @media (max-width: 480px) {
+    .card { padding: 1.5rem 1.25rem; }
+    .opts, .price-opts { grid-template-columns: 1fr; }
+    .step-title { font-size: 19px; }
+  }
+
+  .input-wrap {
+    position: relative; display: flex; align-items: center;
+    border: 1.5px solid var(--gray-200); border-radius: var(--radius);
+    background: #fff; margin-bottom: 1rem;
+    transition: border-color 0.15s;
+  }
+  .input-wrap:focus-within { border-color: var(--blue-400); }
+  .input-icon {
+    width: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .input-icon svg { width: 17px; height: 17px; stroke: var(--gray-400); }
+  .input-wrap:focus-within .input-icon svg { stroke: var(--blue-400); }
+  .text-input {
+    flex: 1; border: none; outline: none; background: transparent;
+    font-family: inherit; font-size: 15px; color: var(--gray-900);
+    padding: 13px 14px 13px 0;
+  }
+  .text-input::placeholder { color: var(--gray-400); }
+  .input-note {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--gray-400); margin-bottom: 1.5rem;
+  }
+
+  .feedback-opts {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px; margin-bottom: 1.2rem;
+  }
+  .fb-opt {
+    border: 1.5px solid var(--gray-200); border-radius: var(--radius);
+    padding: 10px 8px; cursor: pointer; background: #fff;
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    font-size: 13px; font-weight: 500; color: var(--gray-700);
+    transition: border-color 0.15s, background 0.15s;
+    user-select: none; text-align: center;
+  }
+  .fb-opt:hover { border-color: var(--blue-400); background: var(--blue-50); }
+  .fb-opt.selected { border-color: var(--blue-400); background: var(--blue-50); color: var(--blue-800); }
+  .fb-emoji { font-size: 22px; line-height: 1; }
+  @media (max-width: 480px) {
+    .feedback-opts { grid-template-columns: 1fr 1fr; }
+  }
+
+  .share-box {
+    margin-top: 1.8rem;
+    background: linear-gradient(135deg, #E6F1FB, #f0f7ff);
+    border: 1.5px solid var(--blue-100);
+    border-radius: var(--radius);
+    padding: 1.2rem 1.2rem 1.1rem;
+    text-align: left;
+  }
+  .share-box-title {
+    font-size: 15px; font-weight: 600; color: var(--gray-900); margin-bottom: 5px;
+  }
+  .share-box-sub {
+    font-size: 13px; color: var(--gray-400); line-height: 1.5; margin-bottom: 1rem;
+  }
+  .share-btns {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .btn-share-native {
+    flex: 1; min-width: 130px;
+    background: var(--blue-400); color: #fff;
+    border: none; border-radius: var(--radius);
+    padding: 11px 16px; font-size: 14px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px;
+    font-family: inherit; transition: background 0.15s;
+  }
+  .btn-share-native:hover { background: var(--blue-600); }
+  .btn-share-native svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .btn-copy-link {
+    flex: 1; min-width: 120px;
+    background: #fff; color: var(--gray-700);
+    border: 1.5px solid var(--gray-200); border-radius: var(--radius);
+    padding: 11px 16px; font-size: 14px; font-weight: 500;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px;
+    font-family: inherit; transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-copy-link:hover { border-color: var(--blue-400); color: var(--blue-600); }
+  .btn-copy-link.copied { border-color: #2E7D32; color: #2E7D32; background: #E8F5E9; }
+  .btn-copy-link svg { width: 15px; height: 15px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="brand">
+    <div class="brand-logo">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    </div>
+    <span class="brand-name">Project Analytics</span>
+    <span class="brand-tag">Digital Ad Market Research · 2026</span>
+  </div>
+
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill" style="width:16%"></div>
+  </div>
+
+  <!-- STEP 1: Platform -->
+  <div class="step active" id="step-1">
+    <div class="step-eyebrow">Step 1 of 6</div>
+    <div class="step-title">Which platform do you sell ads on?</div>
+    <div class="step-sub">Select all that apply.</div>
+    <div class="multi-hint">You can select multiple options</div>
+    <div class="opts">
+      <div class="opt" data-group="s1" data-val="instagram" onclick="toggleMulti(this)">
+        <div class="opt-icon instagram"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/></svg></div>
+        <span class="opt-label">Instagram</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s1" data-val="tiktok" onclick="toggleMulti(this)">
+        <div class="opt-icon tiktok"><svg viewBox="0 0 24 24"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg></div>
+        <span class="opt-label">TikTok</span><div class="check-ring"></div>
+      </div>
+    </div>
+    <div class="nav">
+      <span class="nav-counter">1 / 6</span>
+      <button class="btn-next" onclick="goNext(1)">Continue <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Audience size -->
+  <div class="step" id="step-2">
+    <div class="step-eyebrow">Step 2 of 6</div>
+    <div class="step-title">What is your audience size?</div>
+    <div class="step-sub">Total followers on your main platform.</div>
+    <div class="opts">
+      <div class="opt" data-group="s2" data-val="100k-500k" onclick="pickSingle(this,'s2','next-2')">
+        <div class="opt-icon size-s"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+        <span class="opt-label">100K – 500K</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s2" data-val="500k-1m" onclick="pickSingle(this,'s2','next-2')">
+        <div class="opt-icon size-m"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+        <span class="opt-label">500K – 1M</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s2" data-val="1m-5m" onclick="pickSingle(this,'s2','next-2')">
+        <div class="opt-icon size-l"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <span class="opt-label">1M – 5M</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s2" data-val="5m+" onclick="pickSingle(this,'s2','next-2')">
+        <div class="opt-icon size-xl"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+        <span class="opt-label">5M+</span><div class="check-ring"></div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(1)"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
+      <button class="btn-next" id="next-2" onclick="goNext(2)" disabled>Continue <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Ad formats -->
+  <div class="step" id="step-3">
+    <div class="step-eyebrow">Step 3 of 6</div>
+    <div class="step-title">What ad formats do you offer?</div>
+    <div class="step-sub">Select all formats you actively sell.</div>
+    <div class="multi-hint">You can select multiple options</div>
+    <div class="opts">
+      <div class="opt" data-group="s3" data-val="dedicated-post" onclick="toggleMulti(this)">
+        <div class="opt-icon post"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <span class="opt-label">Dedicated post</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s3" data-val="integration" onclick="toggleMulti(this)">
+        <div class="opt-icon integration"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+        <span class="opt-label">Integration</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s3" data-val="stories" onclick="toggleMulti(this)">
+        <div class="opt-icon stories"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg></div>
+        <span class="opt-label">Stories / shorts</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s3" data-val="reel-video" onclick="toggleMulti(this)">
+        <div class="opt-icon reel"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+        <span class="opt-label">Reel / video</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s3" data-val="long-video" onclick="toggleMulti(this)">
+        <div class="opt-icon longvideo"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+        <span class="opt-label">Long-form video</span><div class="check-ring"></div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(2)"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
+      <button class="btn-next" onclick="goNext(3)">Continue <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Account type -->
+  <div class="step" id="step-4">
+    <div class="step-eyebrow">Step 4 of 6</div>
+    <div class="step-title">How would you describe your account?</div>
+    <div class="step-sub">Choose the category that best fits your content.</div>
+    <div class="multi-hint">You can select multiple options</div>
+    <div class="opts">
+      <div class="opt" data-group="s4" data-val="blogger" onclick="toggleMulti(this)">
+        <div class="opt-icon blogger"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+        <span class="opt-label">Blogger / Lifestyle</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s4" data-val="musician" onclick="toggleMulti(this)">
+        <div class="opt-icon musician"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+        <span class="opt-label">Music artist</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s4" data-val="athlete" onclick="toggleMulti(this)">
+        <div class="opt-icon athlete"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg></div>
+        <span class="opt-label">Athlete / Sports</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s4" data-val="podcaster" onclick="toggleMulti(this)">
+        <div class="opt-icon podcaster"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></div>
+        <span class="opt-label">Podcaster</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s4" data-val="comedian" onclick="toggleMulti(this)">
+        <div class="opt-icon comedian"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div>
+        <span class="opt-label">Comedian / Standup</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s4" data-val="expert" onclick="toggleMulti(this)">
+        <div class="opt-icon expert"><svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+        <span class="opt-label">Expert / Educator</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s4" data-val="model" onclick="toggleMulti(this)">
+        <div class="opt-icon model"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+        <span class="opt-label">Model / Fashion</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s4" data-val="gamer" onclick="toggleMulti(this)">
+        <div class="opt-icon gamer"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="12" y1="12" x2="12" y2="12"/><path d="M7 12h2m-1-1v2"/><circle cx="17" cy="12" r="1"/><circle cx="15" cy="14" r="1"/></svg></div>
+        <span class="opt-label">Gamer / Esports</span><div class="check-ring"></div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(3)"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
+      <button class="btn-next" onclick="goNext(4)">Continue <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </div>
+  </div>
+
+  <!-- STEP 5: Deal size -->
+  <div class="step" id="step-5">
+    <div class="step-eyebrow">Step 5 of 6</div>
+    <div class="step-title">Typical rate per ad placement?</div>
+    <div class="step-sub">Your average price for a single post, reel, or story.</div>
+    <div class="price-opts">
+      <div class="price-opt" data-group="s5" data-val="under-100" onclick="pickSingle(this,'s5','next-5')">
+        <div class="price-val">Under $100</div><div class="price-desc">Nano creator</div>
+      </div>
+      <div class="price-opt" data-group="s5" data-val="100-300" onclick="pickSingle(this,'s5','next-5')">
+        <div class="price-val">$100 – $300</div><div class="price-desc">Micro creator</div>
+      </div>
+      <div class="price-opt" data-group="s5" data-val="300-700" onclick="pickSingle(this,'s5','next-5')">
+        <div class="price-val">$300 – $700</div><div class="price-desc">Growing creator</div>
+      </div>
+      <div class="price-opt" data-group="s5" data-val="700-1500" onclick="pickSingle(this,'s5','next-5')">
+        <div class="price-val">$700 – $1,500</div><div class="price-desc">Established</div>
+      </div>
+      <div class="price-opt" data-group="s5" data-val="1500-3000" onclick="pickSingle(this,'s5','next-5')">
+        <div class="price-val">$1,500 – $3,000</div><div class="price-desc">Top tier</div>
+      </div>
+      <div class="price-opt" data-group="s5" data-val="3000+" onclick="pickSingle(this,'s5','next-5')">
+        <div class="price-val">$3,000+</div><div class="price-desc">Premium / macro</div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(4)"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
+      <button class="btn-next" id="next-5" onclick="goNext(5)" disabled>Continue <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </div>
+  </div>
+
+  <!-- STEP 6: Volume + repeat -->
+  <div class="step" id="step-6">
+    <div class="step-eyebrow">Step 6 of 6</div>
+    <div class="step-title">A few last questions</div>
+    <div class="step-sub">Help us understand your ad volume and client patterns.</div>
+
+    <div class="sub-q">How many paid placements per month?</div>
+    <div class="opts" style="margin-bottom:1.2rem;">
+      <div class="opt" data-group="s6a" data-val="1-2" onclick="pickSingle(this,'s6a',null);check6()">
+        <div class="opt-icon vol"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+        <span class="opt-label">1 – 2</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s6a" data-val="3-5" onclick="pickSingle(this,'s6a',null);check6()">
+        <div class="opt-icon vol"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+        <span class="opt-label">3 – 5</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s6a" data-val="6-10" onclick="pickSingle(this,'s6a',null);check6()">
+        <div class="opt-icon vol"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+        <span class="opt-label">6 – 10</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s6a" data-val="10+" onclick="pickSingle(this,'s6a',null);check6()">
+        <div class="opt-icon vol"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg></div>
+        <span class="opt-label">10+</span><div class="check-ring"></div>
+      </div>
+    </div>
+
+    <div class="sub-q">What share of your clients are repeat buyers?</div>
+    <div class="opts" style="margin-bottom:1rem;">
+      <div class="opt" data-group="s6b" data-val="mostly-new" onclick="pickSingle(this,'s6b',null);check6()">
+        <div class="opt-icon vol"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div>
+        <span class="opt-label">Mostly new</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s6b" data-val="50-50" onclick="pickSingle(this,'s6b',null);check6()">
+        <div class="opt-icon vol"><svg viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <span class="opt-label">About 50/50</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s6b" data-val="mostly-repeat" onclick="pickSingle(this,'s6b',null);check6()">
+        <div class="opt-icon vol"><svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></div>
+        <span class="opt-label">Mostly repeat</span><div class="check-ring"></div>
+      </div>
+      <div class="opt" data-group="s6b" data-val="long-term" onclick="pickSingle(this,'s6b',null);check6()">
+        <div class="opt-icon model"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+        <span class="opt-label">Long-term only</span><div class="check-ring"></div>
+      </div>
+    </div>
+
+    <div class="error-msg" id="error-box">Something went wrong. Please try again.</div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(5)"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
+      <button class="btn-next" id="next-6" onclick="submitSurvey()" disabled>
+        <span id="btn6-label">Submit</span>
+        <svg id="btn6-icon" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+
+  <!-- STEP 7: Nickname -->
+  <div class="step" id="step-7">
+    <div class="step-eyebrow">Step 7 of 8</div>
+    <div class="step-title">What's your handle?</div>
+    <div class="step-sub">Share your username so we can credit you in the article.</div>
+    <div class="input-wrap">
+      <div class="input-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <input id="nick-input" class="text-input" type="text" placeholder="@yourhandle" oninput="checkNick()" />
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(6)"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
+      <button class="btn-next" id="next-7" onclick="goNext7()" disabled>Continue <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </div>
+  </div>
+
+  <!-- STEP 8: Email -->
+  <div class="step" id="step-8">
+    <div class="step-eyebrow">Step 8 of 8</div>
+    <div class="step-title">What's your email?</div>
+    <div class="step-sub">We'll send you a copy of the report once it's published. We never share your data.</div>
+    <div class="input-wrap">
+      <div class="input-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      </div>
+      <input id="email-input" class="text-input" type="email" placeholder="you@example.com" oninput="checkEmail()" />
+    </div>
+    <div class="input-note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Your email is only used to send you the report
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(7)"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
+      <button class="btn-next" id="next-8" onclick="submitFinal()" disabled>
+        <span>Submit</span>
+        <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 9: Feedback -->
+  <div class="step" id="step-9">
+    <div class="step-eyebrow">Almost done!</div>
+    <div class="step-title">One last thing</div>
+    <div class="step-sub">What did you think of this survey? Any feedback helps us improve.</div>
+    <div class="feedback-opts">
+      <div class="fb-opt" data-val="too-long" onclick="toggleFb(this)">
+        <span class="fb-emoji">⏱️</span>
+        <span>Too long</span>
+      </div>
+      <div class="fb-opt" data-val="just-right" onclick="toggleFb(this)">
+        <span class="fb-emoji">👌</span>
+        <span>Just right</span>
+      </div>
+      <div class="fb-opt" data-val="interesting" onclick="toggleFb(this)">
+        <span class="fb-emoji">🤩</span>
+        <span>Interesting</span>
+      </div>
+      <div class="fb-opt" data-val="confusing" onclick="toggleFb(this)">
+        <span class="fb-emoji">🤔</span>
+        <span>Confusing</span>
+      </div>
+      <div class="fb-opt" data-val="would-share" onclick="toggleFb(this)">
+        <span class="fb-emoji">📤</span>
+        <span>Would share it</span>
+      </div>
+      <div class="fb-opt" data-val="waste-of-time" onclick="toggleFb(this)">
+        <span class="fb-emoji">👎</span>
+        <span>Waste of time</span>
+      </div>
+    </div>
+    <div class="input-wrap" style="margin-bottom:0.5rem;">
+      <div class="input-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <input id="fb-text" class="text-input" type="text" placeholder="Or write your thoughts here..." />
+    </div>
+    <div class="nav" style="margin-top:1.2rem;">
+      <button class="btn-back" onclick="goTo(8)"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
+      <button class="btn-next" onclick="submitFeedback()">Finish <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </div>
+  </div>
+
+  <!-- DONE -->
+  <div class="step" id="step-done">
+    <div class="done-wrap">
+      <div class="done-icon">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="done-pill">Research submitted</div>
+      <div class="done-title">Thank you for your time!</div>
+      <div class="done-sub">Your input will be part of the 2026 Digital Ad Market Report published at the Marketing Analytics Forum.</div>
+
+      <div class="share-box">
+        <div class="share-box-title">🎯 Get mentioned in the article</div>
+        <div class="share-box-sub">Share this survey with other creators — everyone who participates gets credited.</div>
+        <div class="share-btns">
+          <button class="btn-share-native" onclick="doShare()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Share survey
+          </button>
+          <button class="btn-copy-link" id="copy-btn" onclick="copyLink()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span id="copy-label">Copy link</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbxZZDb4bioODwNqAtDremWI9UawTCFWK7R337XQq8tkZPr1Ubb3-8c7NnfDOU1EUZEK/exec";
+const answers = {};
+const progressMap = {1:10,2:20,3:30,4:40,5:50,6:60,7:70,8:80,9:90,10:100};
+
+function showStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  const id = n === 'done' ? 'step-done' : 'step-' + n;
+  document.getElementById(id).classList.add('active');
+  const pIdx = n === 'done' ? 10 : n;
+  document.getElementById('progressFill').style.width = (progressMap[pIdx] || 16) + '%';
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function toggleMulti(el) { el.classList.toggle('selected'); }
+
+function pickSingle(el, group, btnId) {
+  document.querySelectorAll('[data-group="' + group + '"]').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  if (btnId) { const b = document.getElementById(btnId); if (b) b.disabled = false; }
+}
+
+function collectGroup(group) {
+  return Array.from(document.querySelectorAll('[data-group="' + group + '"].selected')).map(e => e.dataset.val);
+}
+
+function goNext(step) {
+  answers['step' + step] = collectGroup('s' + step);
+  showStep(step + 1);
+}
+
+function goTo(step) { showStep(step); }
+
+function check6() {
+  const a = document.querySelector('[data-group="s6a"].selected');
+  const b = document.querySelector('[data-group="s6b"].selected');
+  document.getElementById('next-6').disabled = !(a && b);
+}
+
+
+function checkNick() {
+  const val = document.getElementById('nick-input').value.trim();
+  document.getElementById('next-7').disabled = val.length === 0;
+}
+
+function checkEmail() {
+  const val = document.getElementById('email-input').value.trim();
+  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+  document.getElementById('next-8').disabled = !valid;
+}
+
+function goNext7() {
+  answers.nickname = document.getElementById('nick-input').value.trim();
+  showStep(8);
+}
+
+function submitFinal() {
+  answers.email = document.getElementById('email-input').value.trim();
+
+  const btn = document.getElementById('next-8');
+  btn.disabled = true;
+  btn.querySelector('span').textContent = 'Sending...';
+
+  // Don't send yet — go to feedback step first
+  showStep(9);
+  btn.disabled = false;
+  btn.querySelector('span').textContent = 'Submit';
+}
+
+function submitSurvey() {
+  answers.step6a = collectGroup('s6a');
+  answers.step6b = collectGroup('s6b');
+  // Don't send yet — wait for nick and email on steps 7 & 8
+  showStep(7);
+}
+
+function toggleFb(el) {
+  el.classList.toggle('selected');
+}
+
+function submitFeedback() {
+  const selected = Array.from(document.querySelectorAll('.fb-opt.selected')).map(e => e.dataset.val);
+  const text = document.getElementById('fb-text').value.trim();
+
+  // Add feedback to answers and send everything in ONE request
+  answers.feedback_tags = selected.join(', ');
+  answers.feedback_text = text;
+
+  const formData = new FormData();
+  formData.append('data', JSON.stringify(answers));
+  fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', body: formData });
+  showStep('done');
+}
+
+const SURVEY_URL = "https://dddmmmvvv73-stack.github.io/Project-Analytics/";
+const SHARE_TEXT = "I just participated in the 2026 Digital Ad Market Research by Project Analytics. Takes only 2 min — share your experience too 👇";
+
+function trackAction(action) {
+  // Wait 3 seconds to ensure the main row is already saved in Sheets
+  setTimeout(() => {
+    const formData = new FormData();
+    formData.append('data', JSON.stringify({
+      action: action,
+      email: answers.email || "",
+      nickname: answers.nickname || ""
+    }));
+    fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', body: formData });
+  }, 3000);
+}
+
+function doShare() {
+  trackAction('share');
+  if (navigator.share) {
+    navigator.share({
+      title: "Project Analytics — Digital Ad Market Research",
+      text: SHARE_TEXT,
+      url: SURVEY_URL
+    }).catch(() => {});
+  } else {
+    copyLink();
+  }
+}
+
+function copyLink() {
+  trackAction('copy');
+  const btn = document.getElementById('copy-btn');
+  const label = document.getElementById('copy-label');
+  navigator.clipboard.writeText(SURVEY_URL + "\n\n" + SHARE_TEXT).then(() => {
+    btn.classList.add('copied');
+    label.textContent = 'Copied!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      label.textContent = 'Copy link';
+    }, 2500);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = SURVEY_URL;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.classList.add('copied');
+    label.textContent = 'Copied!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      label.textContent = 'Copy link';
+    }, 2500);
+  });
+}
+</script>
+</body>
+</html>
