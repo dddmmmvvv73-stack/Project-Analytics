@@ -64,10 +64,10 @@ body{font-family:'Inter',sans-serif;background:#F0F4FA;color:var(--g900);min-hei
 
   <div id="content" style="display:none">
     <div class="kpi-row">
-      <div class="kpi"><div class="kpi-label">Total Responses</div><div class="kpi-value" id="k-total">—</div><div class="kpi-sub">завершённых опросов</div></div>
-      <div class="kpi"><div class="kpi-label">Avg Deal Size</div><div class="kpi-value blue" id="k-avg">—</div><div class="kpi-sub">за размещение</div></div>
-      <div class="kpi"><div class="kpi-label">Медиана Price</div><div class="kpi-value blue" id="k-med">—</div><div class="kpi-sub">50-й перцентиль</div></div>
-      <div class="kpi"><div class="kpi-label">Est. Market Vol.</div><div class="kpi-value blue" id="k-mkt">—</div><div class="kpi-sub">в месяц (выборка)</div></div>
+      <div class="kpi"><div class="kpi-label">ВСЕГО ОТВЕТОВ</div><div class="kpi-value" id="k-total">—</div><div class="kpi-sub">завершённых опросов</div></div>
+      <div class="kpi"><div class="kpi-label">СРЕДНИЙ ЧЕК</div><div class="kpi-value blue" id="k-avg">—</div><div class="kpi-sub">за размещение</div></div>
+      <div class="kpi"><div class="kpi-label">МЕДИАННАЯ ЦЕНА</div><div class="kpi-value blue" id="k-med">—</div><div class="kpi-sub">50-й перцентиль</div></div>
+      <div class="kpi"><div class="kpi-label">ОБЪЁМ РЫНКА</div><div class="kpi-value blue" id="k-mkt">—</div><div class="kpi-sub">в месяц (выборка)</div></div>
     </div>
 
     <div class="grid">
@@ -127,6 +127,41 @@ const BLUES  = ["#378ADD","#185FA5","#0C447C","#6EB3F0","#B5D4F4","#93C5E8"];
 const COLORS = ["#378ADD","#EE4B2B","#2ECC71","#F39C12","#9B59B6","#1ABC9C","#E74C3C","#3498DB","#E91E8C","#FF6F00"];
 
 const charts = {};
+
+// Translation dictionary
+const RU = {
+  // Account types
+  'musician': 'Музыкант', 'athlete': 'Спортсмен', 'comedian': 'Комик',
+  'blogger': 'Блогер', 'podcaster': 'Подкастер', 'expert': 'Эксперт',
+  'gamer': 'Геймер', 'model': 'Модель',
+  // Platforms
+  'instagram': 'Instagram', 'tiktok': 'TikTok',
+  // Formats
+  'dedicated-post': 'Отдельный пост', 'integration': 'Интеграция',
+  'stories': 'Сторис', 'reel-video': 'Рилс', 'long-video': 'Длинное видео',
+  // Volume
+  '1-2': '1–2', '3-5': '3–5', '6-10': '6–10', '10+': '10+',
+  // Retention
+  'mostly-new': 'В основном новые', '50-50': '50 на 50',
+  'mostly-repeat': 'В основном повторные', 'long-term': 'Долгосрочные',
+  // Feedback
+  'just-right': 'В самый раз', 'too-long': 'Слишком долго',
+  'interesting': 'Интересно', 'confusing': 'Непонятно',
+  'would-share': 'Поделился бы', 'waste-of-time': 'Трата времени',
+  'no-feedback': 'Без оценки',
+  // Price ranges
+  'under-100': 'До $100', '100-300': '$100–300', '300-700': '$300–700',
+  '700-1500': '$700–1500', '1500-3000': '$1500–3000', '3000+': '$3000+',
+  // Audience
+  '100k-500k': '100К–500К', '500k-1m': '500К–1М',
+  '1m-5m': '1М–5М', '5m+': '5М+',
+};
+
+function tr(val) {
+  if (!val) return val;
+  // Handle comma-separated values
+  return val.split(',').map(v => RU[v.trim()] || v.trim()).join(', ');
+}
 
 function $(id){ return document.getElementById(id); }
 function fmt(n){ if(!n||isNaN(n)) return '—'; if(n>=1000000) return '$'+(n/1000000).toFixed(1)+'M'; if(n>=1000) return '$'+(n/1000).toFixed(0)+'K'; return '$'+Math.round(n); }
@@ -218,29 +253,29 @@ async function load(){
 
     // Platform
     const platF = freq(rows.map(r=>({0:col(r,K.platform)})),0);
-    mkChart('cPlat','doughnut', Object.keys(platF), Object.values(platF), BLUES);
+    mkChart('cPlat','doughnut', Object.keys(platF).map(tr), Object.values(platF), BLUES);
 
     // Account types
     const typeF = freq(rows.map(r=>({0:col(r,K.type)})),0);
     const typeS = Object.entries(typeF).sort((a,b)=>b[1]-a[1]);
-    mkChart('cType','bar', typeS.map(e=>e[0]), typeS.map(e=>e[1]), COLORS);
+    mkChart('cType','bar', typeS.map(e=>tr(e[0])), typeS.map(e=>e[1]), COLORS);
 
     // Retention
     const retF = freq(rows.map(r=>({0:col(r,K.repeat)})),0);
-    mkChart('cRet','doughnut', Object.keys(retF), Object.values(retF), COLORS);
+    mkChart('cRet','doughnut', Object.keys(retF).map(tr), Object.values(retF), COLORS);
 
     // Volume
     const vKeys = ["1-2","3-5","6-10","10+"];
     const vFreq = {};
     rows.forEach(r=>{ const v=col(r,K.volume); if(v) vFreq[v]=(vFreq[v]||0)+1; });
-    mkChart('cVol','bar', vKeys, vKeys.map(k=>vFreq[k]||0), BLUES);
+    mkChart('cVol','bar', vKeys.map(tr), vKeys.map(k=>vFreq[k]||0), BLUES);
 
     // Audience
     const aKeys = ["100k-500k","500k-1m","1m-5m","5m+"];
     const aLbls = ["100К-500К","500К-1М","1М-5М","5М+"];
     const aFreq = {};
     rows.forEach(r=>{ const v=col(r,K.audience); if(v) aFreq[v]=(aFreq[v]||0)+1; });
-    mkChart('cAud','doughnut', aLbls, aKeys.map(k=>aFreq[k]||0), BLUES);
+    mkChart('cAud','doughnut', aLbls.map(tr), aKeys.map(k=>aFreq[k]||0), BLUES);
 
     // Share/Copy
     const totalShare = rows.reduce((s,r)=>s+(parseInt(col(r,K.share))||0),0);
@@ -250,12 +285,12 @@ async function load(){
     // Feedback
     const fbF = freq(rows.map(r=>({0:col(r,K.feedback)})),0);
     const fbS = Object.entries(fbF).sort((a,b)=>b[1]-a[1]);
-    mkChart('cFb','bar', fbS.map(e=>e[0]), fbS.map(e=>e[1]), COLORS);
+    mkChart('cFb','bar', fbS.map(e=>tr(e[0])), fbS.map(e=>e[1]), COLORS);
 
     // Formats
     const fmtF = freq(rows.map(r=>({0:col(r,K.formats)})),0);
     const fmtS = Object.entries(fmtF).sort((a,b)=>b[1]-a[1]);
-    mkChart('cFmt','bar', fmtS.map(e=>e[0]), fmtS.map(e=>e[1]), BLUES);
+    mkChart('cFmt','bar', fmtS.map(e=>tr(e[0])), fmtS.map(e=>e[1]), BLUES);
 
     $('updated').textContent = 'Обновлено: ' + new Date().toLocaleTimeString();
     $('loading').style.display='none';
