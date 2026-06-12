@@ -1,0 +1,265 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.survey-wrap { max-width: 580px; margin: 0 auto; padding: 2rem 1rem; font-family: var(--font-sans); }
+.brand { display: flex; align-items: center; gap: 10px; margin-bottom: 2rem; }
+.brand-dot { width: 28px; height: 28px; border-radius: 6px; background: #378ADD; display: flex; align-items: center; justify-content: center; }
+.brand-dot i { font-size: 15px; color: #fff; }
+.brand-name { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+.brand-tag { font-size: 12px; color: var(--color-text-secondary); margin-left: auto; }
+.progress-bar { height: 3px; background: var(--color-border-tertiary); border-radius: 2px; margin-bottom: 2rem; }
+.progress-fill { height: 100%; background: #378ADD; border-radius: 2px; transition: width 0.4s ease; }
+.step { display: none; animation: fadeIn 0.3s ease; }
+.step.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.step-label { font-size: 12px; color: var(--color-text-secondary); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
+.step-title { font-size: 20px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 6px; line-height: 1.4; }
+.step-sub { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 1.5rem; line-height: 1.6; }
+.multi-hint { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 10px; }
+.options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+.opt { border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 12px 16px; cursor: pointer; font-size: 14px; color: var(--color-text-primary); background: var(--color-background-primary); transition: all 0.15s; display: flex; align-items: center; gap: 10px; }
+.opt:hover { border-color: #378ADD; background: #E6F1FB; color: #0C447C; }
+.opt.selected { border-color: #378ADD; background: #E6F1FB; color: #0C447C; }
+.opt i { font-size: 17px; color: #378ADD; flex-shrink: 0; }
+.opt.selected i { color: #0C447C; }
+.check { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--color-border-secondary); margin-left: auto; flex-shrink: 0; }
+.opt.selected .check { background: #378ADD; border-color: #378ADD; display: flex; align-items: center; justify-content: center; }
+.opt.selected .check::after { content: ''; width: 6px; height: 4px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg) translateY(-1px); display: block; }
+.price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+.price-opt { border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 14px 16px; cursor: pointer; background: var(--color-background-primary); transition: all 0.15s; text-align: center; }
+.price-opt:hover { border-color: #378ADD; background: #E6F1FB; }
+.price-opt.selected { border-color: #378ADD; background: #E6F1FB; }
+.price-opt .price-val { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+.price-opt.selected .price-val { color: #0C447C; }
+.price-opt .price-desc { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+.price-opt.selected .price-desc { color: #185FA5; }
+.nav { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+.btn-back { background: none; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 10px 20px; font-size: 14px; color: var(--color-text-secondary); cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.btn-back:hover { color: var(--color-text-primary); }
+.btn-next { background: #378ADD; border: none; border-radius: var(--border-radius-md); padding: 10px 24px; font-size: 14px; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500; transition: background 0.15s; }
+.btn-next:hover:not(:disabled) { background: #185FA5; }
+.btn-next:disabled { background: var(--color-border-tertiary); color: var(--color-text-tertiary); cursor: not-allowed; }
+.step-counter { font-size: 13px; color: var(--color-text-secondary); }
+.thank-wrap { text-align: center; padding: 2rem 0; }
+.thank-icon { width: 56px; height: 56px; border-radius: 50%; background: #E6F1FB; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; }
+.thank-icon i { font-size: 28px; color: #378ADD; }
+.thank-title { font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 10px; }
+.thank-sub { font-size: 15px; color: var(--color-text-secondary); line-height: 1.6; }
+.tag-pill { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 20px; background: #E6F1FB; color: #185FA5; margin-bottom: 1rem; font-weight: 500; }
+.spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-msg { font-size: 13px; color: var(--color-text-danger); margin-top: 8px; padding: 8px 12px; background: var(--color-background-danger); border-radius: var(--border-radius-md); }
+</style>
+
+<div class="survey-wrap">
+  <div class="brand">
+    <div class="brand-dot"><i class="ti ti-chart-dots" aria-hidden="true"></i></div>
+    <span class="brand-name">Project Analytics</span>
+    <span class="brand-tag">Digital Ad Market Research · 2025</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:16%"></div></div>
+
+  <div class="step active" id="step-1">
+    <div class="step-label">Step 1 of 6</div>
+    <div class="step-title">Which platforms do you monetize through ads?</div>
+    <div class="step-sub">Select all that apply. This helps us segment data by platform.</div>
+    <div class="multi-hint">You can select multiple options</div>
+    <div class="options-grid">
+      <div class="opt" data-group="s1" data-val="instagram" onclick="toggleMulti(this)"><i class="ti ti-brand-instagram" aria-hidden="true"></i>Instagram<div class="check"></div></div>
+      <div class="opt" data-group="s1" data-val="youtube" onclick="toggleMulti(this)"><i class="ti ti-brand-youtube" aria-hidden="true"></i>YouTube<div class="check"></div></div>
+      <div class="opt" data-group="s1" data-val="tiktok" onclick="toggleMulti(this)"><i class="ti ti-brand-tiktok" aria-hidden="true"></i>TikTok<div class="check"></div></div>
+      <div class="opt" data-group="s1" data-val="telegram" onclick="toggleMulti(this)"><i class="ti ti-brand-telegram" aria-hidden="true"></i>Telegram<div class="check"></div></div>
+      <div class="opt" data-group="s1" data-val="twitter" onclick="toggleMulti(this)"><i class="ti ti-brand-x" aria-hidden="true"></i>X / Twitter<div class="check"></div></div>
+      <div class="opt" data-group="s1" data-val="other" onclick="toggleMulti(this)"><i class="ti ti-dots" aria-hidden="true"></i>Other<div class="check"></div></div>
+    </div>
+    <div class="nav">
+      <span class="step-counter">1 / 6</span>
+      <button class="btn-next" onclick="goNext(1)">Continue <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <div class="step" id="step-2">
+    <div class="step-label">Step 2 of 6</div>
+    <div class="step-title">What is your audience size?</div>
+    <div class="step-sub">Total followers across your main platform.</div>
+    <div class="options-grid">
+      <div class="opt" data-group="s2" data-val="100k-500k" onclick="pickSingle(this,'s2','next-2')"><i class="ti ti-users" aria-hidden="true"></i>100K – 500K<div class="check"></div></div>
+      <div class="opt" data-group="s2" data-val="500k-1m" onclick="pickSingle(this,'s2','next-2')"><i class="ti ti-users" aria-hidden="true"></i>500K – 1M<div class="check"></div></div>
+      <div class="opt" data-group="s2" data-val="1m-5m" onclick="pickSingle(this,'s2','next-2')"><i class="ti ti-users" aria-hidden="true"></i>1M – 5M<div class="check"></div></div>
+      <div class="opt" data-group="s2" data-val="5m+" onclick="pickSingle(this,'s2','next-2')"><i class="ti ti-star" aria-hidden="true"></i>5M+<div class="check"></div></div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(1)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Back</button>
+      <button class="btn-next" id="next-2" onclick="goNext(2)" disabled>Continue <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <div class="step" id="step-3">
+    <div class="step-label">Step 3 of 6</div>
+    <div class="step-title">What ad formats do you offer?</div>
+    <div class="step-sub">Select all formats you actively sell to advertisers.</div>
+    <div class="multi-hint">You can select multiple options</div>
+    <div class="options-grid">
+      <div class="opt" data-group="s3" data-val="dedicated-post" onclick="toggleMulti(this)"><i class="ti ti-file-text" aria-hidden="true"></i>Dedicated post<div class="check"></div></div>
+      <div class="opt" data-group="s3" data-val="integration" onclick="toggleMulti(this)"><i class="ti ti-plug" aria-hidden="true"></i>Integration / mention<div class="check"></div></div>
+      <div class="opt" data-group="s3" data-val="stories" onclick="toggleMulti(this)"><i class="ti ti-circle" aria-hidden="true"></i>Stories / shorts<div class="check"></div></div>
+      <div class="opt" data-group="s3" data-val="reel-video" onclick="toggleMulti(this)"><i class="ti ti-player-play" aria-hidden="true"></i>Reel / video<div class="check"></div></div>
+      <div class="opt" data-group="s3" data-val="long-video" onclick="toggleMulti(this)"><i class="ti ti-video" aria-hidden="true"></i>Long-form video<div class="check"></div></div>
+      <div class="opt" data-group="s3" data-val="newsletter" onclick="toggleMulti(this)"><i class="ti ti-mail" aria-hidden="true"></i>Newsletter / DM<div class="check"></div></div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(2)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Back</button>
+      <button class="btn-next" onclick="goNext(3)">Continue <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <div class="step" id="step-4">
+    <div class="step-label">Step 4 of 6</div>
+    <div class="step-title">Who are your typical advertisers?</div>
+    <div class="step-sub">Which business types buy ads from you most often? Select all that apply.</div>
+    <div class="multi-hint">You can select multiple options</div>
+    <div class="options-grid">
+      <div class="opt" data-group="s4" data-val="ecommerce" onclick="toggleMulti(this)"><i class="ti ti-shopping-cart" aria-hidden="true"></i>E-commerce / DTC<div class="check"></div></div>
+      <div class="opt" data-group="s4" data-val="infobiz" onclick="toggleMulti(this)"><i class="ti ti-school" aria-hidden="true"></i>Online courses / info<div class="check"></div></div>
+      <div class="opt" data-group="s4" data-val="saas" onclick="toggleMulti(this)"><i class="ti ti-device-laptop" aria-hidden="true"></i>Apps / SaaS<div class="check"></div></div>
+      <div class="opt" data-group="s4" data-val="finance" onclick="toggleMulti(this)"><i class="ti ti-coin" aria-hidden="true"></i>Finance / crypto<div class="check"></div></div>
+      <div class="opt" data-group="s4" data-val="brands" onclick="toggleMulti(this)"><i class="ti ti-building" aria-hidden="true"></i>Big brands / agencies<div class="check"></div></div>
+      <div class="opt" data-group="s4" data-val="local" onclick="toggleMulti(this)"><i class="ti ti-map-pin" aria-hidden="true"></i>Local / small business<div class="check"></div></div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(3)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Back</button>
+      <button class="btn-next" onclick="goNext(4)">Continue <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <div class="step" id="step-5">
+    <div class="step-label">Step 5 of 6</div>
+    <div class="step-title">What is your typical deal size per placement?</div>
+    <div class="step-sub">Your average rate for a single ad placement (post, video, or integration).</div>
+    <div class="price-grid">
+      <div class="price-opt" data-group="s5" data-val="under-1k" onclick="pickSingle(this,'s5','next-5')"><div class="price-val">Under $1,000</div><div class="price-desc">Micro / early stage</div></div>
+      <div class="price-opt" data-group="s5" data-val="1k-5k" onclick="pickSingle(this,'s5','next-5')"><div class="price-val">$1,000 – $5,000</div><div class="price-desc">Growing creator</div></div>
+      <div class="price-opt" data-group="s5" data-val="5k-15k" onclick="pickSingle(this,'s5','next-5')"><div class="price-val">$5,000 – $15,000</div><div class="price-desc">Established creator</div></div>
+      <div class="price-opt" data-group="s5" data-val="15k-50k" onclick="pickSingle(this,'s5','next-5')"><div class="price-val">$15,000 – $50,000</div><div class="price-desc">Top tier</div></div>
+      <div class="price-opt" data-group="s5" data-val="50k-100k" onclick="pickSingle(this,'s5','next-5')"><div class="price-val">$50,000 – $100,000</div><div class="price-desc">Premium / macro</div></div>
+      <div class="price-opt" data-group="s5" data-val="100k+" onclick="pickSingle(this,'s5','next-5')"><div class="price-val">$100,000+</div><div class="price-desc">Elite / celebrity</div></div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(4)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Back</button>
+      <button class="btn-next" id="next-5" onclick="goNext(5)" disabled>Continue <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <div class="step" id="step-6">
+    <div class="step-label">Step 6 of 6</div>
+    <div class="step-title">A few last questions</div>
+    <div class="step-sub">Help us understand your ad volume and client patterns.</div>
+    <div style="margin-bottom:1.2rem;">
+      <div style="font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:10px;">How many paid placements do you run per month?</div>
+      <div class="options-grid">
+        <div class="opt" data-group="s6a" data-val="1-2" onclick="pickSingle(this,'s6a',null);check6()"><i class="ti ti-number-1" aria-hidden="true"></i>1 – 2<div class="check"></div></div>
+        <div class="opt" data-group="s6a" data-val="3-5" onclick="pickSingle(this,'s6a',null);check6()"><i class="ti ti-number-3" aria-hidden="true"></i>3 – 5<div class="check"></div></div>
+        <div class="opt" data-group="s6a" data-val="6-10" onclick="pickSingle(this,'s6a',null);check6()"><i class="ti ti-number-6" aria-hidden="true"></i>6 – 10<div class="check"></div></div>
+        <div class="opt" data-group="s6a" data-val="10+" onclick="pickSingle(this,'s6a',null);check6()"><i class="ti ti-infinity" aria-hidden="true"></i>10+<div class="check"></div></div>
+      </div>
+    </div>
+    <div style="margin-bottom:1.2rem;">
+      <div style="font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:10px;">What share of your clients are repeat buyers?</div>
+      <div class="options-grid">
+        <div class="opt" data-group="s6b" data-val="mostly-new" onclick="pickSingle(this,'s6b',null);check6()"><i class="ti ti-user-plus" aria-hidden="true"></i>Mostly new<div class="check"></div></div>
+        <div class="opt" data-group="s6b" data-val="50-50" onclick="pickSingle(this,'s6b',null);check6()"><i class="ti ti-scale" aria-hidden="true"></i>About 50/50<div class="check"></div></div>
+        <div class="opt" data-group="s6b" data-val="mostly-repeat" onclick="pickSingle(this,'s6b',null);check6()"><i class="ti ti-repeat" aria-hidden="true"></i>Mostly repeat<div class="check"></div></div>
+        <div class="opt" data-group="s6b" data-val="long-term" onclick="pickSingle(this,'s6b',null);check6()"><i class="ti ti-heart" aria-hidden="true"></i>Long-term only<div class="check"></div></div>
+      </div>
+    </div>
+    <div id="error-box" style="display:none;" class="error-msg">Something went wrong. Please try again.</div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(5)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Back</button>
+      <button class="btn-next" id="next-6" onclick="submitSurvey()" disabled>
+        <span id="btn6-label">Submit</span>
+        <i class="ti ti-send" id="btn6-icon" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="step" id="step-done">
+    <div class="thank-wrap">
+      <div class="thank-icon"><i class="ti ti-circle-check" aria-hidden="true"></i></div>
+      <div class="tag-pill">Research submitted</div>
+      <div class="thank-title">Thank you for your time!</div>
+      <div class="thank-sub">Your input will be part of the 2025 Digital Ad Market Report published at the Marketing Analytics Forum.<br><br>If you'd like to be credited in the article, feel free to reply to this message with your preferred name or handle.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbwKrjC4ISj8pNidptiDIX3K039b2XCwsFDE6s1ZSFF2Etz_9k4UlwVy_t-EUHJ6/exec";
+const answers = {};
+const progressMap = {1:16,2:30,3:45,4:58,5:72,6:86,7:100};
+
+function showStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  const id = n === 'done' ? 'step-done' : 'step-' + n;
+  document.getElementById(id).classList.add('active');
+  const pIdx = n === 'done' ? 7 : n;
+  document.getElementById('progressFill').style.width = (progressMap[pIdx] || 16) + '%';
+}
+
+function toggleMulti(el) { el.classList.toggle('selected'); }
+
+function pickSingle(el, group, btnId) {
+  document.querySelectorAll('[data-group="' + group + '"]').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  if (btnId) { const b = document.getElementById(btnId); if (b) b.disabled = false; }
+}
+
+function collectGroup(group) {
+  return Array.from(document.querySelectorAll('[data-group="' + group + '"].selected')).map(e => e.dataset.val);
+}
+
+function goNext(step) {
+  answers['step' + step] = collectGroup('s' + step);
+  showStep(step + 1);
+}
+
+function goTo(step) { showStep(step); }
+
+function check6() {
+  const a = document.querySelector('[data-group="s6a"].selected');
+  const b = document.querySelector('[data-group="s6b"].selected');
+  document.getElementById('next-6').disabled = !(a && b);
+}
+
+function submitSurvey() {
+  answers.step6a = collectGroup('s6a');
+  answers.step6b = collectGroup('s6b');
+
+  const btn = document.getElementById('next-6');
+  const label = document.getElementById('btn6-label');
+  const icon = document.getElementById('btn6-icon');
+  const errBox = document.getElementById('error-box');
+
+  btn.disabled = true;
+  label.textContent = 'Sending...';
+  icon.outerHTML = '<span id="btn6-icon" class="spinner"></span>';
+  errBox.style.display = 'none';
+
+  const formData = new FormData();
+  formData.append('data', JSON.stringify(answers));
+
+  fetch(SHEET_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    body: formData
+  })
+  .then(() => {
+    showStep('done');
+  })
+  .catch(() => {
+    btn.disabled = false;
+    label.textContent = 'Submit';
+    document.getElementById('btn6-icon').outerHTML = '<i class="ti ti-send" id="btn6-icon" aria-hidden="true"></i>';
+    errBox.style.display = 'block';
+  });
+}
+</script>
