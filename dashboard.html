@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Analytics — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blue-400: #378ADD; --blue-600: #185FA5; --blue-50: #E6F1FB;
+  --gray-100: #ECEEF2; --gray-400: #8892A0; --gray-700: #3C4554; --gray-900: #1A202C;
+}
+body { font-family: 'Inter', sans-serif; background: #F0F4FA; color: var(--gray-900); padding: 2rem 1rem; }
+.header { max-width: 1100px; margin: 0 auto 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-logo { width: 36px; height: 36px; background: var(--blue-400); border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+.brand-logo svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; }
+.brand-name { font-size: 17px; font-weight: 700; }
+.brand-sub { font-size: 12px; color: var(--gray-400); }
+.updated { font-size: 12px; color: var(--gray-400); }
+.grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.card { background: #fff; border-radius: 16px; padding: 1.5rem; box-shadow: 0 1px 8px rgba(0,0,0,0.06); }
+.card.wide { grid-column: span 2; }
+.card.full { grid-column: span 3; }
+.card-label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 6px; }
+.card-value { font-size: 36px; font-weight: 700; color: var(--gray-900); line-height: 1; }
+.card-sub { font-size: 13px; color: var(--gray-400); margin-top: 4px; }
+.card-title { font-size: 15px; font-weight: 600; color: var(--gray-900); margin-bottom: 1rem; }
+.chart-wrap { position: relative; height: 220px; }
+.stat-row { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+.stat { flex: 1; min-width: 80px; background: var(--blue-50); border-radius: 10px; padding: 10px 14px; }
+.stat-label { font-size: 11px; color: var(--gray-400); font-weight: 500; }
+.stat-val { font-size: 20px; font-weight: 700; color: var(--blue-600); margin-top: 2px; }
+.loading { text-align: center; padding: 4rem; color: var(--gray-400); font-size: 15px; }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--gray-100); border-top-color: var(--blue-400); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 1rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.tag { display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: 20px; background: var(--blue-50); color: var(--blue-600); font-weight: 600; margin-right: 4px; margin-bottom: 4px; }
+@media (max-width: 700px) {
+  .grid { grid-template-columns: 1fr; }
+  .card.wide, .card.full { grid-column: span 1; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">
+    <div class="brand-logo"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+    <div>
+      <div class="brand-name">Project Analytics</div>
+      <div class="brand-sub">Digital Ad Market Research · 2026</div>
+    </div>
+  </div>
+  <div class="updated" id="updated">Loading data...</div>
+</div>
+
+<div id="loading" class="loading">
+  <div class="spinner"></div>
+  Fetching survey data...
+</div>
+
+<div class="grid" id="grid" style="display:none">
+
+  <!-- Total responses -->
+  <div class="card">
+    <div class="card-label">Total Responses</div>
+    <div class="card-value" id="total">—</div>
+    <div class="card-sub">survey completions</div>
+  </div>
+
+  <!-- Avg price -->
+  <div class="card">
+    <div class="card-label">Avg Deal Size</div>
+    <div class="card-value" id="avg-price">—</div>
+    <div class="card-sub">per placement</div>
+  </div>
+
+  <!-- Market size -->
+  <div class="card">
+    <div class="card-label">Est. Market Volume</div>
+    <div class="card-value" id="market">—</div>
+    <div class="card-sub">monthly (sample)</div>
+  </div>
+
+  <!-- Price distribution -->
+  <div class="card wide">
+    <div class="card-title">Price Distribution per Placement</div>
+    <div class="chart-wrap"><canvas id="priceChart"></canvas></div>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-label">Mean</div><div class="stat-val" id="mean">—</div></div>
+      <div class="stat"><div class="stat-label">Median</div><div class="stat-val" id="median">—</div></div>
+      <div class="stat"><div class="stat-label">Std Dev</div><div class="stat-val" id="std">—</div></div>
+      <div class="stat"><div class="stat-label">Mode</div><div class="stat-val" id="mode">—</div></div>
+    </div>
+  </div>
+
+  <!-- Platform split -->
+  <div class="card">
+    <div class="card-title">Platform Split</div>
+    <div class="chart-wrap"><canvas id="platformChart"></canvas></div>
+  </div>
+
+  <!-- Account types -->
+  <div class="card wide">
+    <div class="card-title">Account Types</div>
+    <div class="chart-wrap"><canvas id="typeChart"></canvas></div>
+  </div>
+
+  <!-- Placements per month -->
+  <div class="card">
+    <div class="card-title">Placements / Month</div>
+    <div class="chart-wrap"><canvas id="volChart"></canvas></div>
+  </div>
+
+  <!-- Repeat clients -->
+  <div class="card">
+    <div class="card-title">Client Retention</div>
+    <div class="chart-wrap"><canvas id="retChart"></canvas></div>
+  </div>
+
+  <!-- Audience size -->
+  <div class="card">
+    <div class="card-title">Audience Size</div>
+    <div class="chart-wrap"><canvas id="audChart"></canvas></div>
+  </div>
+
+  <!-- Share vs Copy -->
+  <div class="card">
+    <div class="card-title">Viral Actions</div>
+    <div class="chart-wrap"><canvas id="shareChart"></canvas></div>
+  </div>
+
+  <!-- Feedback -->
+  <div class="card wide">
+    <div class="card-title">Survey Feedback</div>
+    <div class="chart-wrap"><canvas id="fbChart"></canvas></div>
+  </div>
+
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwbaiqUaHQVzAOQYtnpuc8GyAqAOzulm3koGtxGNeGHE3WfowFjDf4Fhg8YExoi3M_-/exec";
+
+const PRICE_MID = {
+  "under-100": 50, "100-300": 200, "300-700": 500,
+  "700-1500": 1100, "1500-3000": 2250, "3000+": 4000
+};
+const VOL_MID = { "1-2": 1.5, "3-5": 4, "6-10": 8, "10+": 12 };
+
+const BLUE = ["#378ADD","#185FA5","#0C447C","#6EB3F0","#B5D4F4","#E6F1FB"];
+const COLORS = ["#378ADD","#EE4B2B","#2ECC71","#F39C12","#9B59B6","#1ABC9C","#E74C3C","#3498DB"];
+
+function fmt(n) {
+  if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return '$' + (n/1000).toFixed(0) + 'K';
+  return '$' + Math.round(n);
+}
+
+function mean(arr) { return arr.reduce((a,b)=>a+b,0)/arr.length; }
+function median(arr) {
+  const s = [...arr].sort((a,b)=>a-b);
+  const m = Math.floor(s.length/2);
+  return s.length%2 ? s[m] : (s[m-1]+s[m])/2;
+}
+function stddev(arr) {
+  const m = mean(arr);
+  return Math.sqrt(arr.reduce((s,v)=>s+(v-m)**2,0)/arr.length);
+}
+function mode(arr) {
+  const freq = {};
+  arr.forEach(v => freq[v] = (freq[v]||0)+1);
+  return Object.entries(freq).sort((a,b)=>b[1]-a[1])[0][0];
+}
+
+function count(rows, col) {
+  const freq = {};
+  rows.forEach(r => {
+    const vals = (r[col]||'').split(',').map(v=>v.trim()).filter(Boolean);
+    vals.forEach(v => freq[v] = (freq[v]||0)+1);
+  });
+  return freq;
+}
+
+function makeChart(id, type, labels, data, colors, opts={}) {
+  const ctx = document.getElementById(id).getContext('2d');
+  return new Chart(ctx, {
+    type,
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: type==='bar'?colors:'#fff', borderWidth: type==='bar'?0:2 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: type!=='bar', position:'right', labels:{boxWidth:12,font:{size:11}} } },
+      scales: type==='bar' ? { y:{ beginAtZero:true, grid:{color:'#f0f0f0'}, ticks:{font:{size:11}} }, x:{grid:{display:false}, ticks:{font:{size:11}}} } : {},
+      ...opts
+    }
+  });
+}
+
+async function load() {
+  try {
+    const res = await fetch(API_URL);
+    const json = await res.json();
+    if (json.status !== 'ok') throw new Error(json.message);
+    const rawRows = json.rows;
+
+    // Map object rows to array format matching column indices
+    const COL = {
+      timestamp: 'Дата и время', platform: 'Платформа', audience: 'Кол-во подписчиков',
+      formats: 'Формат рекламы', type: 'Аудитория / Тип аккаунта', price: 'Стоимость размещения',
+      volume: 'Кол-во заказов в месяц', repeat: 'Повторные клиенты',
+      nick: 'Никнейм', email: 'Email', feedback: 'Оценка опроса',
+      comment: 'Комментарий', sent: 'Письмо отправлено', share: 'Share', copy: 'Copy'
+    };
+    const rows = rawRows.map(r => [
+      r[COL.timestamp]||'', r[COL.platform]||'', r[COL.audience]||'',
+      r[COL.formats]||'', r[COL.type]||'', r[COL.price]||'',
+      r[COL.volume]||'', r[COL.repeat]||'', r[COL.nick]||'',
+      r[COL.email]||'', r[COL.feedback]||'', r[COL.comment]||'',
+      r[COL.sent]||'', r[COL.share]||0, r[COL.copy]||0
+    ]);
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('grid').style.display = 'grid';
+    document.getElementById('updated').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+
+    const valid = rows.filter(r => r[0]);
+    document.getElementById('total').textContent = valid.length;
+
+    // Price analysis
+    const prices = valid.map(r => PRICE_MID[r[5]]).filter(Boolean);
+    const avgP = mean(prices);
+    const medP = median(prices);
+    const stdP = stddev(prices);
+    const modeP = mode(prices.map(p => Object.entries(PRICE_MID).find(([k,v])=>v===p)?.[0]||''));
+
+    document.getElementById('avg-price').textContent = fmt(avgP);
+    document.getElementById('mean').textContent = fmt(avgP);
+    document.getElementById('median').textContent = fmt(medP);
+    document.getElementById('std').textContent = fmt(stdP);
+    document.getElementById('mode').textContent = modeP;
+
+    // Market size estimate
+    const vols = valid.map(r => VOL_MID[r[6]]).filter(Boolean);
+    const avgVol = mean(vols);
+    const market = avgP * avgVol * valid.length;
+    document.getElementById('market').textContent = fmt(market);
+
+    // Price chart (histogram style)
+    const priceBuckets = ["under-100","100-300","300-700","700-1500","1500-3000","3000+"];
+    const priceLabels = ["<$100","$100-300","$300-700","$700-1.5K","$1.5-3K","$3K+"];
+    const priceFreq = count(valid, 5);
+    makeChart('priceChart','bar', priceLabels, priceBuckets.map(k=>priceFreq[k]||0), BLUE);
+
+    // Platform
+    const platFreq = count(valid, 1);
+    const platKeys = Object.keys(platFreq);
+    makeChart('platformChart','doughnut', platKeys, platKeys.map(k=>platFreq[k]), BLUE);
+
+    // Account types
+    const typeFreq = count(valid, 4);
+    const typeKeys = Object.keys(typeFreq).sort((a,b)=>typeFreq[b]-typeFreq[a]);
+    makeChart('typeChart','bar', typeKeys, typeKeys.map(k=>typeFreq[k]), COLORS);
+
+    // Volume
+    const volFreq = count(valid, 6);
+    const volKeys = ["1-2","3-5","6-10","10+"];
+    makeChart('volChart','bar', volKeys, volKeys.map(k=>volFreq[k]||0), BLUE);
+
+    // Retention
+    const retFreq = count(valid, 7);
+    const retKeys = Object.keys(retFreq);
+    makeChart('retChart','doughnut', retKeys, retKeys.map(k=>retFreq[k]), COLORS);
+
+    // Audience
+    const audFreq = count(valid, 2);
+    const audKeys = ["100k-500k","500k-1m","1m-5m","5m+"];
+    const audLabels = ["100K-500K","500K-1M","1M-5M","5M+"];
+    makeChart('audChart','doughnut', audLabels, audKeys.map(k=>audFreq[k]||0), BLUE);
+
+    // Share vs Copy
+    const totalShare = valid.reduce((s,r)=>s+(parseInt(r[13])||0),0);
+    const totalCopy  = valid.reduce((s,r)=>s+(parseInt(r[14])||0),0);
+    makeChart('shareChart','doughnut',['Share','Copy link'],[totalShare,totalCopy],['#378ADD','#6EB3F0']);
+
+    // Feedback
+    const fbFreq = count(valid, 10);
+    const fbKeys = Object.keys(fbFreq);
+    makeChart('fbChart','bar', fbKeys, fbKeys.map(k=>fbFreq[k]), COLORS);
+
+  } catch(err) {
+    document.getElementById('loading').innerHTML = '<div style="color:#B91C1C">Error loading data. Make sure the Google Sheet is publicly accessible.</div>';
+    console.error(err);
+  }
+}
+
+load();
+setInterval(load, 60000); // refresh every minute
+</script>
+</body>
+</html>
