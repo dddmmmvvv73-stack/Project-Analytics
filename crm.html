@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Analytics — CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#378ADD;--blue-d:#185FA5;--blue-dd:#0C447C;--blue-l:#E6F1FB;
+  --gray:#8892A0;--g100:#ECEEF2;--g200:#D4D8E0;--g700:#3C4554;--g900:#1A202C;
+  --green-l:#EAF3DE;--green-d:#3B6D11;
+  --amber-l:#FAEEDA;--amber-d:#854F0B;
+  --purple-l:#EEEDFE;--purple-d:#3C3489;
+  --pink-l:#FCE4EC;--pink-d:#880E4F;
+  --teal-l:#E1F5EE;--teal-d:#0F6E56;
+  --radius:10px;--radius-lg:14px;
+}
+body{font-family:'Inter',sans-serif;background:#F0F4FA;color:var(--g900);min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:#fff;border-bottom:1px solid var(--g100);padding:.875rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:32px;height:32px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round}
+.brand-name{font-size:15px;font-weight:600}
+.brand-sub{font-size:11px;color:var(--gray)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.btn{border:none;border-radius:var(--radius);padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all .15s}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-d)}
+.btn-ghost{background:none;border:1px solid var(--g200);color:var(--g700)}
+.btn-ghost:hover{background:var(--g100)}
+.btn svg{width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+/* KPI */
+.main{padding:1.25rem 1.5rem}
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.25rem}
+.kpi{background:#fff;border-radius:var(--radius-lg);padding:1rem 1.25rem;border:1px solid var(--g100)}
+.kpi-label{font-size:11px;color:var(--gray);font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.kpi-val{font-size:28px;font-weight:600;color:var(--g900);line-height:1}
+.kpi-val.blue{color:var(--blue-d)}
+.kpi-sub{font-size:11px;color:var(--gray);margin-top:3px}
+.conv{font-size:11px;font-weight:500;color:var(--green-d);background:var(--green-l);padding:2px 6px;border-radius:4px;margin-top:4px;display:inline-block}
+
+/* KANBAN */
+.kanban{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.col{background:#fff;border-radius:var(--radius-lg);border:1px solid var(--g100);overflow:hidden}
+.col-head{padding:10px 12px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between}
+.col-title{font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px}
+.col-title svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px}
+.col-body{padding:8px;min-height:200px}
+
+/* STATUS COLORS */
+.s-found .col-title{color:var(--gray)}
+.s-found .badge{background:var(--g100);color:var(--g700)}
+.s-sent .col-title{color:var(--blue-d)}
+.s-sent .badge{background:var(--blue-l);color:var(--blue-d)}
+.s-read .col-title{color:var(--amber-d)}
+.s-read .badge{background:var(--amber-l);color:var(--amber-d)}
+.s-replied .col-title{color:var(--teal-d)}
+.s-replied .badge{background:var(--teal-l);color:var(--teal-d)}
+.s-done .col-title{color:var(--purple-d)}
+.s-done .badge{background:var(--purple-l);color:var(--purple-d)}
+
+/* CARDS */
+.card{background:#fff;border:1px solid var(--g100);border-radius:var(--radius);padding:10px;margin-bottom:8px;cursor:pointer;transition:border-color .15s;position:relative}
+.card:hover{border-color:var(--blue);box-shadow:0 2px 8px rgba(55,138,221,.1)}
+.card-handle{font-size:13px;font-weight:500;color:var(--g900);margin-bottom:3px;display:flex;align-items:center;gap:5px}
+.card-handle svg{width:13px;height:13px;stroke:var(--gray);stroke-width:2;fill:none;flex-shrink:0}
+.card-info{font-size:11px;color:var(--gray);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.card-info svg{width:11px;height:11px;stroke:currentColor;stroke-width:2;fill:none;flex-shrink:0}
+.tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
+.tag{font-size:10px;padding:2px 6px;border-radius:4px;font-weight:500}
+.tag-music{background:var(--pink-l);color:var(--pink-d)}
+.tag-sport{background:var(--green-l);color:var(--green-d)}
+.tag-blog{background:var(--blue-l);color:var(--blue-d)}
+.tag-podcast{background:var(--amber-l);color:var(--amber-d)}
+.tag-comedy{background:var(--purple-l);color:var(--purple-d)}
+.tag-expert{background:var(--teal-l);color:var(--teal-d)}
+.tag-ig{background:linear-gradient(135deg,#f9ce34,#ee2a7b,#6228d7);color:#fff}
+.tag-tt{background:#010101;color:#fff}
+.card-foot{display:flex;align-items:center;justify-content:space-between}
+.avatar{width:20px;height:20px;border-radius:50%;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.av-1{background:var(--blue-l);color:var(--blue-d)}
+.av-2{background:var(--green-l);color:var(--green-d)}
+.card-date{font-size:10px;color:var(--gray)}
+.price-pill{font-size:10px;font-weight:600;color:var(--blue-d);background:var(--blue-l);padding:2px 7px;border-radius:4px}
+.col-add{display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;font-size:12px;color:var(--gray);border:1px dashed var(--g200);border-radius:var(--radius);cursor:pointer;transition:all .15s;margin-top:4px}
+.col-add:hover{border-color:var(--blue);color:var(--blue)}
+.col-add svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:200;display:none}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:var(--radius-lg);padding:1.5rem;width:100%;max-width:420px;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:17px;font-weight:600;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--gray);padding:4px}
+.modal-close svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--g700);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--g200);border-radius:var(--radius);padding:9px 12px;font-size:14px;font-family:inherit;color:var(--g900);outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue)}
+.field textarea{resize:vertical;min-height:70px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-foot{display:flex;gap:8px;margin-top:1.25rem}
+.modal-foot .btn{flex:1;justify-content:center}
+
+/* DETAIL MODAL */
+.detail-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid var(--g100)}
+.detail-avatar{width:44px;height:44px;border-radius:50%;background:var(--blue-l);color:var(--blue-d);font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.detail-name{font-size:17px;font-weight:600}
+.detail-meta{font-size:13px;color:var(--gray);margin-top:3px}
+.status-select{width:100%;border:1px solid var(--g200);border-radius:var(--radius);padding:8px 12px;font-size:14px;font-family:inherit;margin-bottom:1rem;outline:none}
+.status-select:focus{border-color:var(--blue)}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem}
+.detail-item{background:#F7F8FA;border-radius:8px;padding:8px 10px}
+.detail-item-label{font-size:10px;color:var(--gray);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.detail-item-val{font-size:13px;font-weight:500;color:var(--g900)}
+
+/* LOADING */
+.loading{text-align:center;padding:3rem;color:var(--gray)}
+.spinner{width:28px;height:28px;border:2px solid var(--g100);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 1rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:900px){
+  .kpi-row{grid-template-columns:repeat(3,1fr)}
+  .kanban{grid-template-columns:repeat(3,1fr);overflow-x:auto}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="logo"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+    <div>
+      <div class="brand-name">Project Analytics — CRM</div>
+      <div class="brand-sub">Воронка блогеров</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-ghost" onclick="loadCRM()">
+      <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Обновить
+    </button>
+    <button class="btn btn-primary" onclick="openAddModal()">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Добавить блогера
+    </button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="kpi-row" id="kpiRow">
+    <div class="kpi"><div class="kpi-label">Всего</div><div class="kpi-val" id="k-total">—</div><div class="kpi-sub">блогеров в базе</div></div>
+    <div class="kpi"><div class="kpi-label">DM отправлено</div><div class="kpi-val blue" id="k-sent">—</div></div>
+    <div class="kpi"><div class="kpi-label">Ответили</div><div class="kpi-val blue" id="k-replied">—</div></div>
+    <div class="kpi"><div class="kpi-label">Опрос пройден</div><div class="kpi-val blue" id="k-done">—</div></div>
+    <div class="kpi"><div class="kpi-label">В работе</div><div class="kpi-val blue" id="k-work">—</div></div>
+  </div>
+
+  <div id="loading" class="loading"><div class="spinner"></div>Загрузка данных...</div>
+
+  <div class="kanban" id="kanban" style="display:none">
+    <div class="col s-found">
+      <div class="col-head">
+        <div class="col-title"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Найден</div>
+        <span class="badge" id="cnt-found">0</span>
+      </div>
+      <div class="col-body" id="col-found"></div>
+    </div>
+    <div class="col s-sent">
+      <div class="col-head">
+        <div class="col-title"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> DM отправлен</div>
+        <span class="badge" id="cnt-sent">0</span>
+      </div>
+      <div class="col-body" id="col-sent"></div>
+    </div>
+    <div class="col s-read">
+      <div class="col-head">
+        <div class="col-title"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Прочитал</div>
+        <span class="badge" id="cnt-read">0</span>
+      </div>
+      <div class="col-body" id="col-read"></div>
+    </div>
+    <div class="col s-replied">
+      <div class="col-head">
+        <div class="col-title"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Ответил</div>
+        <span class="badge" id="cnt-replied">0</span>
+      </div>
+      <div class="col-body" id="col-replied"></div>
+    </div>
+    <div class="col s-done">
+      <div class="col-head">
+        <div class="col-title"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Опрос пройден</div>
+        <span class="badge" id="cnt-done">0</span>
+      </div>
+      <div class="col-body" id="col-done"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-bg" id="addModal">
+  <div class="modal">
+    <div class="modal-title">
+      Добавить блогера
+      <button class="modal-close" onclick="closeModal('addModal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="field">
+      <label>Никнейм *</label>
+      <input id="f-nick" type="text" placeholder="@username" />
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Платформа</label>
+        <select id="f-platform">
+          <option value="">Выбрать</option>
+          <option value="instagram">Instagram</option>
+          <option value="tiktok">TikTok</option>
+          <option value="instagram, tiktok">Оба</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Тип аккаунта</label>
+        <select id="f-type">
+          <option value="">Выбрать</option>
+          <option value="musician">Музыкант</option>
+          <option value="athlete">Спортсмен</option>
+          <option value="blogger">Блогер</option>
+          <option value="podcaster">Подкастер</option>
+          <option value="comedian">Комик</option>
+          <option value="expert">Эксперт</option>
+          <option value="model">Модель</option>
+          <option value="gamer">Геймер</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Размер аудитории</label>
+        <select id="f-audience">
+          <option value="">Выбрать</option>
+          <option value="100k-500k">100K – 500K</option>
+          <option value="500k-1m">500K – 1M</option>
+          <option value="1m-5m">1M – 5M</option>
+          <option value="5m+">5M+</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Менеджер</label>
+        <input id="f-manager" type="text" placeholder="Имя" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Комментарий</label>
+      <textarea id="f-comment" placeholder="Заметки..."></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('addModal')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveNewBlogger()">Добавить</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-bg" id="detailModal">
+  <div class="modal">
+    <div class="modal-title">
+      Карточка блогера
+      <button class="modal-close" onclick="closeModal('detailModal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="detail-header">
+      <div class="detail-avatar" id="d-avatar">—</div>
+      <div>
+        <div class="detail-name" id="d-name">—</div>
+        <div class="detail-meta" id="d-meta">—</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Статус</label>
+      <select class="status-select" id="d-status" onchange="updateStatus()">
+        <option value="🔍 Найден">🔍 Найден</option>
+        <option value="📨 DM отправлен">📨 DM отправлен</option>
+        <option value="👀 Прочитал">👀 Прочитал</option>
+        <option value="💬 Ответил">💬 Ответил</option>
+        <option value="✅ Опрос пройден">✅ Опрос пройден</option>
+        <option value="🤝 В работе">🤝 В работе</option>
+        <option value="❌ Не интересно">❌ Не интересно</option>
+      </select>
+    </div>
+    <div class="detail-grid" id="d-grid"></div>
+    <div class="field">
+      <label>Менеджер</label>
+      <input id="d-manager" type="text" placeholder="Имя менеджера" />
+    </div>
+    <div class="field">
+      <label>Комментарий</label>
+      <textarea id="d-comment" placeholder="Заметки..."></textarea>
+    </div>
+    <div class="field">
+      <label>Следующий шаг</label>
+      <input id="d-next" type="text" placeholder="Что сделать следующим?" />
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('detailModal')">Закрыть</button>
+      <button class="btn btn-primary" onclick="saveDetail()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbwJFWqcAOHb2tBuB66fqgA3xAlzlFXgRT5m4Pk7t_-GDEM6Vjqp3D_nkmN8In2WXc3n/exec";
+
+const TYPE_MAP = {
+  musician:'Музыкант', athlete:'Спортсмен', blogger:'Блогер',
+  podcaster:'Подкастер', comedian:'Комик', expert:'Эксперт',
+  model:'Модель', gamer:'Геймер'
+};
+const AUD_MAP = {
+  '100k-500k':'100K–500K','500k-1m':'500K–1M','1m-5m':'1M–5M','5m+':'5M+'
+};
+const PRICE_MAP = {
+  'under-100':'До $100','100-300':'$100–300','300-700':'$300–700',
+  '700-1500':'$700–1500','1500-3000':'$1500–3000','3000+':'$3000+'
+};
+const TAG_CLASS = {
+  musician:'tag-music', athlete:'tag-sport', blogger:'tag-blog',
+  podcaster:'tag-podcast', comedian:'tag-comedy', expert:'tag-expert',
+  model:'tag-music', gamer:'tag-comedy'
+};
+
+let allRows = [];
+let currentRowIndex = -1;
+
+function tr(val, map) { return map[val] || val; }
+
+function statusToCol(status) {
+  if (!status || status.includes('Найден')) return 'found';
+  if (status.includes('DM') || status.includes('отправлен')) return 'sent';
+  if (status.includes('Прочитал') || status.includes('прочитал')) return 'read';
+  if (status.includes('Ответил') || status.includes('ответил')) return 'replied';
+  if (status.includes('Опрос') || status.includes('пройден') || status.includes('В работе') || status.includes('работе')) return 'done';
+  return 'found';
+}
+
+function makeCard(row, idx) {
+  const nick = row['Никнейм'] || row['никнейм'] || '—';
+  const type = row['Тип аккаунта'] || '';
+  const aud  = row['Кол-во подписчиков'] || row['аудитория'] || '';
+  const plat = (row['Платформа'] || '').toLowerCase();
+  const price = row['Стоимость размещения'] || row['Средний чек'] || '';
+  const manager = row['Менеджер'] || '';
+  const date = row['Дата опроса'] || '';
+
+  const typeRu = tr(type.split(',')[0].trim(), TYPE_MAP);
+  const audRu  = tr(aud.split(',')[0].trim(), AUD_MAP);
+  const priceRu = tr(price.split(',')[0].trim(), PRICE_MAP);
+  const tagClass = TAG_CLASS[type.split(',')[0].trim()] || 'tag-blog';
+
+  const igTag = plat.includes('instagram') ? `<span class="tag tag-ig">Instagram</span>` : '';
+  const ttTag = plat.includes('tiktok') ? `<span class="tag tag-tt">TikTok</span>` : '';
+  const manInitials = manager ? manager.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase() : '';
+  const avClass = idx%2===0 ? 'av-1' : 'av-2';
+
+  return `<div class="card" onclick="openDetail(${idx})">
+    <div class="card-handle">
+      <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>
+      ${nick}
+    </div>
+    ${audRu ? `<div class="card-info"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${audRu}</div>` : ''}
+    <div class="tags">
+      ${type ? `<span class="tag ${tagClass}">${typeRu}</span>` : ''}
+      ${igTag}${ttTag}
+    </div>
+    <div class="card-foot">
+      ${priceRu && priceRu !== '—' && price ? `<span class="price-pill">${priceRu}</span>` : `<span></span>`}
+      <div style="display:flex;align-items:center;gap:6px">
+        ${manInitials ? `<div class="avatar ${avClass}">${manInitials}</div>` : ''}
+        <span class="card-date">${date}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function loadCRM() {
+  document.getElementById('loading').style.display='block';
+  document.getElementById('kanban').style.display='none';
+
+  try {
+    const res = await fetch(API + '?action=getCRM');
+    const json = await res.json();
+    if (json.status !== 'ok') throw new Error(json.message);
+
+    allRows = json.rows || [];
+    renderKanban();
+  } catch(err) {
+    document.getElementById('loading').innerHTML = '<div style="color:#B91C1C">Ошибка загрузки: ' + err.message + '</div>';
+  }
+}
+
+function renderKanban() {
+  const cols = {found:[],sent:[],read:[],replied:[],done:[]};
+
+  allRows.forEach((row, idx) => {
+    const col = statusToCol(row['Статус'] || '');
+    cols[col].push({row, idx});
+  });
+
+  Object.keys(cols).forEach(colKey => {
+    const el = document.getElementById('col-' + colKey);
+    const cnt = document.getElementById('cnt-' + colKey);
+    if (!el) return;
+
+    let html = '';
+    cols[colKey].forEach(({row, idx}) => { html += makeCard(row, idx); });
+    html += `<div class="col-add" onclick="openAddModal()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Добавить</div>`;
+    el.innerHTML = html;
+    if (cnt) cnt.textContent = cols[colKey].length;
+  });
+
+  // KPIs
+  document.getElementById('k-total').textContent = allRows.length;
+  document.getElementById('k-sent').textContent = (cols.sent.length + cols.read.length + cols.replied.length + cols.done.length);
+  document.getElementById('k-replied').textContent = (cols.replied.length + cols.done.length);
+  document.getElementById('k-done').textContent = cols.done.filter(({row}) => row['Статус'] && row['Статус'].includes('пройден')).length;
+  document.getElementById('k-work').textContent = cols.done.filter(({row}) => row['Статус'] && row['Статус'].includes('работе')).length;
+
+  document.getElementById('loading').style.display='none';
+  document.getElementById('kanban').style.display='grid';
+}
+
+function openDetail(idx) {
+  currentRowIndex = idx;
+  const row = allRows[idx];
+  const nick = row['Никнейм'] || '—';
+  const type = row['Тип аккаунта'] || '';
+  const aud  = row['Кол-во подписчиков'] || '';
+  const plat = row['Платформа'] || '';
+  const price = row['Стоимость размещения'] || '';
+  const email = row['Email'] || '';
+  const status = row['Статус'] || '';
+
+  document.getElementById('d-avatar').textContent = nick.replace('@','').substring(0,2).toUpperCase();
+  document.getElementById('d-name').textContent = nick;
+  document.getElementById('d-meta').textContent = [tr(type.split(',')[0].trim(), TYPE_MAP), plat].filter(Boolean).join(' · ');
+  document.getElementById('d-status').value = status || '🔍 Найден';
+  document.getElementById('d-manager').value = row['Менеджер'] || '';
+  document.getElementById('d-comment').value = row['Комментарий'] || '';
+  document.getElementById('d-next').value = row['Следующий шаг'] || '';
+
+  const items = [
+    {label:'Аудитория', val: tr(aud.split(',')[0].trim(), AUD_MAP)},
+    {label:'Средний чек', val: tr(price.split(',')[0].trim(), PRICE_MAP)},
+    {label:'Email', val: email},
+    {label:'Дата', val: row['Дата опроса'] || '—'},
+  ];
+  document.getElementById('d-grid').innerHTML = items.map(i =>
+    `<div class="detail-item"><div class="detail-item-label">${i.label}</div><div class="detail-item-val">${i.val||'—'}</div></div>`
+  ).join('');
+
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function updateStatus() {}
+
+async function saveDetail() {
+  const row = allRows[currentRowIndex];
+  const data = {
+    action: 'saveCRM',
+    rowIndex: currentRowIndex + 1,
+    nickname: row['Никнейм'] || '',
+    status: document.getElementById('d-status').value,
+    manager: document.getElementById('d-manager').value,
+    comment: document.getElementById('d-comment').value,
+    nextStep: document.getElementById('d-next').value,
+  };
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', API);
+  xhr.setRequestHeader('Content-Type', 'text/plain');
+  xhr.onload = () => { closeModal('detailModal'); loadCRM(); };
+  xhr.send(JSON.stringify(data));
+}
+
+function openAddModal() {
+  ['f-nick','f-manager','f-comment'].forEach(id => document.getElementById(id).value='');
+  ['f-platform','f-type','f-audience'].forEach(id => document.getElementById(id).selectedIndex=0);
+  document.getElementById('addModal').classList.add('open');
+}
+
+async function saveNewBlogger() {
+  const nick = document.getElementById('f-nick').value.trim();
+  if (!nick) { alert('Введите никнейм'); return; }
+
+  const data = {
+    action: 'saveCRM',
+    rowIndex: 0,
+    nickname: nick,
+    platform: document.getElementById('f-platform').value,
+    type: document.getElementById('f-type').value,
+    audience: document.getElementById('f-audience').value,
+    manager: document.getElementById('f-manager').value,
+    comment: document.getElementById('f-comment').value,
+    status: '🔍 Найден',
+  };
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', API);
+  xhr.setRequestHeader('Content-Type', 'text/plain');
+  xhr.onload = () => { closeModal('addModal'); loadCRM(); };
+  xhr.send(JSON.stringify(data));
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+loadCRM();
+</script>
+</body>
+</html>
