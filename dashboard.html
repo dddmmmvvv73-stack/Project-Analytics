@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Analytics — Dashboard 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--blue:#378ADD;--blue-d:#185FA5;--blue-dd:#0C447C;--blue-l:#E6F1FB;--gray:#8892A0;--g100:#ECEEF2;--g900:#1A202C}
+body{font-family:'Inter',sans-serif;background:#F0F4FA;color:var(--g900);min-height:100vh}
+.topbar{background:#fff;border-bottom:1px solid var(--g100);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round}
+.brand-name{font-size:16px;font-weight:700}
+.brand-sub{font-size:11px;color:var(--gray)}
+.refresh-btn{background:var(--blue-l);color:var(--blue-d);border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;transition:background .15s}
+.refresh-btn:hover{background:#B5D4F4}
+.refresh-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round}
+.updated{font-size:12px;color:var(--gray);margin-right:12px}
+.main{max-width:1200px;margin:0 auto;padding:1.5rem 1.5rem 3rem}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+.kpi{background:#fff;border-radius:14px;padding:1.25rem 1.5rem;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+.kpi-label{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--gray);margin-bottom:6px}
+.kpi-value{font-size:32px;font-weight:700;color:var(--g900);line-height:1}
+.kpi-sub{font-size:12px;color:var(--gray);margin-top:4px}
+.kpi-value.blue{color:var(--blue-d)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:1rem}
+.card{background:#fff;border-radius:14px;padding:1.25rem 1.5rem;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+.c4{grid-column:span 4}.c6{grid-column:span 6}.c8{grid-column:span 8}.c12{grid-column:span 12}
+.card-title{font-size:14px;font-weight:600;color:var(--g900);margin-bottom:1rem}
+.chart-wrap{position:relative;height:200px}
+.chart-wrap.tall{height:260px}
+.stat-row{display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap}
+.stat{flex:1;min-width:70px;background:var(--blue-l);border-radius:8px;padding:8px 12px}
+.stat-label{font-size:10px;color:var(--gray);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.stat-val{font-size:18px;font-weight:700;color:var(--blue-d);margin-top:2px}
+.loading-wrap{text-align:center;padding:6rem 2rem;color:var(--gray)}
+.spinner{width:36px;height:36px;border:3px solid var(--g100);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 1rem}
+.error-msg{color:#B91C1C;background:#FEF2F2;border-radius:10px;padding:1rem 1.5rem;text-align:center;margin:2rem auto;max-width:500px;font-size:14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:900px){.kpi-row{grid-template-columns:1fr 1fr}.c4,.c6,.c8,.c12{grid-column:span 12}}
+@media(max-width:500px){.kpi-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="logo"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+    <div><div class="brand-name">Project Analytics</div><div class="brand-sub">Исследование рынка цифровой рекламы · 2026</div></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="updated" id="updated">—</span>
+    <button class="refresh-btn" onclick="load()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Обновить</button>
+  </div>
+</div>
+
+<div class="main">
+  <div id="loading" class="loading-wrap"><div class="spinner"></div>Загрузка данных...</div>
+  <div id="error" style="display:none" class="error-msg"></div>
+
+  <div id="content" style="display:none">
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">ВСЕГО ОТВЕТОВ</div><div class="kpi-value" id="k-total">—</div><div class="kpi-sub">завершённых опросов</div></div>
+      <div class="kpi"><div class="kpi-label">СРЕДНИЙ ЧЕК</div><div class="kpi-value blue" id="k-avg">—</div><div class="kpi-sub">за размещение</div></div>
+      <div class="kpi"><div class="kpi-label">МЕДИАННАЯ ЦЕНА</div><div class="kpi-value blue" id="k-med">—</div><div class="kpi-sub">50-й перцентиль</div></div>
+      <div class="kpi"><div class="kpi-label">ОБЪЁМ РЫНКА</div><div class="kpi-value blue" id="k-mkt">—</div><div class="kpi-sub">в месяц (выборка)</div></div>
+    </div>
+
+    <div class="grid">
+      <div class="card c8">
+        <div class="card-title">💰 Распределение цен за размещение</div>
+        <div class="chart-wrap tall"><canvas id="cPrice"></canvas></div>
+        <div class="stat-row">
+          <div class="stat"><div class="stat-label">Среднее</div><div class="stat-val" id="s-mean">—</div></div>
+          <div class="stat"><div class="stat-label">Медиана</div><div class="stat-val" id="s-med">—</div></div>
+          <div class="stat"><div class="stat-label">Откл.</div><div class="stat-val" id="s-std">—</div></div>
+          <div class="stat"><div class="stat-label">Мода</div><div class="stat-val" id="s-mode">—</div></div>
+        </div>
+      </div>
+      <div class="card c4">
+        <div class="card-title">📱 Платформы</div>
+        <div class="chart-wrap tall"><canvas id="cPlat"></canvas></div>
+      </div>
+      <div class="card c8">
+        <div class="card-title">🎭 Типы аккаунтов</div>
+        <div class="chart-wrap"><canvas id="cType"></canvas></div>
+      </div>
+      <div class="card c4">
+        <div class="card-title">🔁 Повторные клиенты</div>
+        <div class="chart-wrap"><canvas id="cRet"></canvas></div>
+      </div>
+      <div class="card c4">
+        <div class="card-title">📅 Размещений в месяц</div>
+        <div class="chart-wrap"><canvas id="cVol"></canvas></div>
+      </div>
+      <div class="card c4">
+        <div class="card-title">👥 Размер аудитории</div>
+        <div class="chart-wrap"><canvas id="cAud"></canvas></div>
+      </div>
+      <div class="card c4">
+        <div class="card-title">🚀 Виральные действия</div>
+        <div class="chart-wrap"><canvas id="cShare"></canvas></div>
+      </div>
+      <div class="card c6">
+        <div class="card-title">💬 Оценка опроса</div>
+        <div class="chart-wrap"><canvas id="cFb"></canvas></div>
+      </div>
+      <div class="card c6">
+        <div class="card-title">📊 Форматы рекламы</div>
+        <div class="chart-wrap"><canvas id="cFmt"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbxid6DwlWYOmwz0o52qqzoDeyM5h_PxUQn8A5E0w6yIF7vKb8nrIpSkPKLSPVOGLObj/exec";
+
+const PRICE_MID = {"under-100":50,"100-300":200,"300-700":500,"700-1500":1100,"1500-3000":2250,"3000+":4000};
+const VOL_MID   = {"1-2":1.5,"3-5":4,"6-10":8,"10+":12};
+
+const BLUES  = ["#378ADD","#185FA5","#0C447C","#6EB3F0","#B5D4F4","#93C5E8"];
+const COLORS = ["#378ADD","#EE4B2B","#2ECC71","#F39C12","#9B59B6","#1ABC9C","#E74C3C","#3498DB","#E91E8C","#FF6F00"];
+
+const charts = {};
+
+// Translation dictionary
+const RU = {
+  // Account types
+  'musician': 'Музыкант', 'athlete': 'Спортсмен', 'comedian': 'Комик',
+  'blogger': 'Блогер', 'podcaster': 'Подкастер', 'expert': 'Эксперт',
+  'gamer': 'Геймер', 'model': 'Модель',
+  // Platforms
+  'instagram': 'Instagram', 'tiktok': 'TikTok',
+  // Formats
+  'dedicated-post': 'Отдельный пост', 'integration': 'Интеграция',
+  'stories': 'Сторис', 'reel-video': 'Рилс', 'long-video': 'Длинное видео',
+  // Volume
+  '1-2': '1–2', '3-5': '3–5', '6-10': '6–10', '10+': '10+',
+  // Retention
+  'mostly-new': 'В основном новые', '50-50': '50 на 50',
+  'mostly-repeat': 'В основном повторные', 'long-term': 'Долгосрочные',
+  // Feedback
+  'just-right': 'В самый раз', 'too-long': 'Слишком долго',
+  'interesting': 'Интересно', 'confusing': 'Непонятно',
+  'would-share': 'Поделился бы', 'waste-of-time': 'Трата времени',
+  'no-feedback': 'Без оценки',
+  // Price ranges
+  'under-100': 'До $100', '100-300': '$100–300', '300-700': '$300–700',
+  '700-1500': '$700–1500', '1500-3000': '$1500–3000', '3000+': '$3000+',
+  // Audience
+  '100k-500k': '100К–500К', '500k-1m': '500К–1М',
+  '1m-5m': '1М–5М', '5m+': '5М+',
+};
+
+function tr(val) {
+  if (!val) return val;
+  // Handle comma-separated values
+  return val.split(',').map(v => RU[v.trim()] || v.trim()).join(', ');
+}
+
+function $(id){ return document.getElementById(id); }
+function fmt(n){ if(!n||isNaN(n)) return '—'; if(n>=1000000) return '$'+(n/1000000).toFixed(1)+'M'; if(n>=1000) return '$'+(n/1000).toFixed(0)+'K'; return '$'+Math.round(n); }
+function avg(a){ return a.length ? a.reduce((s,v)=>s+v,0)/a.length : 0; }
+function med(a){ const s=[...a].sort((x,y)=>x-y); const m=Math.floor(s.length/2); return s.length%2?s[m]:(s[m-1]+s[m])/2; }
+function std(a){ const m=avg(a); return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/a.length); }
+function mode(a){ const f={}; a.forEach(v=>f[v]=(f[v]||0)+1); return Object.entries(f).sort((x,y)=>y[1]-x[1])[0]?.[0]||'—'; }
+function freq(rows, col){ const f={}; rows.forEach(r=>{ (r[col]||'').split(',').map(v=>v.trim()).filter(Boolean).forEach(v=>f[v]=(f[v]||0)+1); }); return f; }
+
+function mkChart(id, type, labels, data, colors, extra={}){
+  if(charts[id]) charts[id].destroy();
+  const ctx = $(id).getContext('2d');
+  charts[id] = new Chart(ctx,{
+    type, data:{labels, datasets:[{data, backgroundColor:colors, borderColor: type==='bar'?colors:'#fff', borderWidth:type==='bar'?0:2, borderRadius:type==='bar'?6:0}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:type!=='bar',position:'right',labels:{boxWidth:11,font:{size:11},padding:8}}},
+      scales: type==='bar'?{y:{beginAtZero:true,grid:{color:'#f5f5f5'},ticks:{font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:11},maxRotation:30}}}:{},
+      ...extra}
+  });
+}
+
+async function load(){
+  $('loading').style.display='block';
+  $('content').style.display='none';
+  $('error').style.display='none';
+  try {
+    const res = await fetch(API);
+    const json = await res.json();
+
+    if(json.status !== 'ok') throw new Error(json.message||'Unknown error');
+
+    const rawRows = json.rows;
+    if(!rawRows||!rawRows.length){ throw new Error('Данных пока нет'); }
+
+    // Detect column names from first row
+    const sample = rawRows[0];
+    const keys = Object.keys(sample);
+    console.log('Available keys:', keys);
+
+    // Find columns by partial match
+    function findKey(partial){ return keys.find(k => k.toLowerCase().includes(partial.toLowerCase())) || null; }
+
+    const K = {
+      platform: findKey('латформ'),
+      audience: findKey('одписч'),
+      formats:  findKey('ормат'),
+      type:     findKey('ип акк') || findKey('удитори'),
+      price:    findKey('тоимост'),
+      volume:   findKey('заказов') || findKey('азмещен'),
+      repeat:   findKey('овторн'),
+      feedback: findKey('ценка'),
+      share:    findKey('hare') || findKey('Поделился'),
+      copy:     findKey('opy')  || findKey('Copy'),
+    };
+    console.log('Mapped keys:', K);
+
+    // Filter valid rows — first column is timestamp
+    const timestampKey = keys.find(k => k.includes('время') || k.includes('Дата') || k.includes('time')) || keys[0];
+    const rows = rawRows.filter(r => r[timestampKey]);
+
+    // Extract values
+    function col(r, k){ return k ? (r[k]||'') : ''; }
+
+    // Prices
+    const prices = rows.map(r => PRICE_MID[col(r,K.price)]).filter(Boolean);
+    const vols   = rows.map(r => VOL_MID[col(r,K.volume)]).filter(Boolean);
+    const avgP   = avg(prices);
+    const medP   = med(prices);
+    const stdP   = std(prices);
+    const modeP  = mode(prices.map(p=>Object.entries(PRICE_MID).find(([k,v])=>v===p)?.[0]||''));
+    const mktVol = avgP * avg(vols) * rows.length;
+
+    // KPIs
+    $('k-total').textContent = rows.length;
+    $('k-avg').textContent   = fmt(avgP);
+    $('k-med').textContent   = fmt(medP);
+    $('k-mkt').textContent   = fmt(mktVol);
+    $('s-mean').textContent  = fmt(avgP);
+    $('s-med').textContent   = fmt(medP);
+    $('s-std').textContent   = fmt(stdP);
+    $('s-mode').textContent  = modeP;
+
+    // Price chart
+    const pKeys = ["under-100","100-300","300-700","700-1500","1500-3000","3000+"];
+    const pLbls = ["До $100","$100-300","$300-700","$700-1.5К","$1.5-3К","$3К+"];
+    const pFreq = {};
+    rows.forEach(r=>{ const v=col(r,K.price); if(v) pFreq[v]=(pFreq[v]||0)+1; });
+    mkChart('cPrice','bar', pLbls, pKeys.map(k=>pFreq[k]||0), BLUES);
+
+    // Platform
+    const platF = freq(rows.map(r=>({0:col(r,K.platform)})),0);
+    mkChart('cPlat','doughnut', Object.keys(platF).map(tr), Object.values(platF), BLUES);
+
+    // Account types
+    const typeF = freq(rows.map(r=>({0:col(r,K.type)})),0);
+    const typeS = Object.entries(typeF).sort((a,b)=>b[1]-a[1]);
+    mkChart('cType','bar', typeS.map(e=>tr(e[0])), typeS.map(e=>e[1]), COLORS);
+
+    // Retention
+    const retF = freq(rows.map(r=>({0:col(r,K.repeat)})),0);
+    mkChart('cRet','doughnut', Object.keys(retF).map(tr), Object.values(retF), COLORS);
+
+    // Volume
+    const vKeys = ["1-2","3-5","6-10","10+"];
+    const vFreq = {};
+    rows.forEach(r=>{ const v=col(r,K.volume); if(v) vFreq[v]=(vFreq[v]||0)+1; });
+    mkChart('cVol','bar', vKeys.map(tr), vKeys.map(k=>vFreq[k]||0), BLUES);
+
+    // Audience
+    const aKeys = ["100k-500k","500k-1m","1m-5m","5m+"];
+    const aLbls = ["100К-500К","500К-1М","1М-5М","5М+"];
+    const aFreq = {};
+    rows.forEach(r=>{ const v=col(r,K.audience); if(v) aFreq[v]=(aFreq[v]||0)+1; });
+    mkChart('cAud','doughnut', aLbls.map(tr), aKeys.map(k=>aFreq[k]||0), BLUES);
+
+    // Share/Copy
+    const totalShare = rows.reduce((s,r)=>s+(parseInt(col(r,K.share))||0),0);
+    const totalCopy  = rows.reduce((s,r)=>s+(parseInt(col(r,K.copy))||0),0);
+    mkChart('cShare','doughnut',['Поделился','Скопировал ссылку'],[totalShare,totalCopy],['#378ADD','#93C5E8']);
+
+    // Feedback
+    const fbF = freq(rows.map(r=>({0:col(r,K.feedback)})),0);
+    const fbS = Object.entries(fbF).sort((a,b)=>b[1]-a[1]);
+    mkChart('cFb','bar', fbS.map(e=>tr(e[0])), fbS.map(e=>e[1]), COLORS);
+
+    // Formats
+    const fmtF = freq(rows.map(r=>({0:col(r,K.formats)})),0);
+    const fmtS = Object.entries(fmtF).sort((a,b)=>b[1]-a[1]);
+    mkChart('cFmt','bar', fmtS.map(e=>tr(e[0])), fmtS.map(e=>e[1]), BLUES);
+
+    $('updated').textContent = 'Обновлено: ' + new Date().toLocaleTimeString();
+    $('loading').style.display='none';
+    $('content').style.display='block';
+
+  } catch(err) {
+    $('loading').style.display='none';
+    $('error').style.display='block';
+    $('error').textContent = '⚠️ ' + err.message;
+    console.error(err);
+  }
+}
+
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>
